@@ -24,6 +24,7 @@ public partial class BuildingPlacer : Node2D
 	private readonly Dictionary<BuildingType, PackedScene> buildingScenes = new();
 
 	private ResourceManager resourceManager;
+	private UpgradeManager upgradeManager;
 	private Node2D buildingsRoot;
 	private Polygon2D preview;
 	private BuildingType selectedBuildingType = BuildingType.Drill;
@@ -35,13 +36,19 @@ public partial class BuildingPlacer : Node2D
 
 	public bool IsBuildModeActive => isBuildModeActive;
 	public string SelectedBuildingName => BuildingDefinitions.Get(selectedBuildingType).DisplayName;
-	public string SelectedBuildingCost => BuildingDefinitions.FormatCost(selectedBuildingType);
+	public string SelectedBuildingCost => GetSelectedBuildingCostText();
 	public string StatusText => statusText;
 
 	public override void _Ready()
 	{
 		EnsureBuildInputActions();
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
+		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		if (upgradeManager != null)
+		{
+			upgradeManager.UpgradeApplied += OnUpgradeApplied;
+		}
+
 		buildingsRoot = GetNodeOrNull<Node2D>("../TestWorld/Buildings");
 		CacheBuildingScenes();
 		CacheBlockedCells();
@@ -54,6 +61,14 @@ public partial class BuildingPlacer : Node2D
 	{
 		HandleBuildInput();
 		UpdatePreview();
+	}
+
+	public override void _ExitTree()
+	{
+		if (upgradeManager != null)
+		{
+			upgradeManager.UpgradeApplied -= OnUpgradeApplied;
+		}
 	}
 
 	private void HandleBuildInput()
@@ -112,13 +127,14 @@ public partial class BuildingPlacer : Node2D
 		}
 
 		BuildingDefinition definition = BuildingDefinitions.Get(selectedBuildingType);
+		Dictionary<ResourceType, int> cost = GetSelectedBuildingCost();
 		if (!buildingScenes.TryGetValue(selectedBuildingType, out PackedScene scene) || scene == null)
 		{
 			SetStatus("Invalid placement");
 			return;
 		}
 
-		if (resourceManager == null || !resourceManager.Spend(definition.Cost))
+		if (resourceManager == null || !resourceManager.Spend(cost))
 		{
 			SetStatus("Not enough resources");
 			return;
@@ -145,8 +161,7 @@ public partial class BuildingPlacer : Node2D
 			return false;
 		}
 
-		BuildingDefinition definition = BuildingDefinitions.Get(selectedBuildingType);
-		if (resourceManager == null || !resourceManager.CanSpend(definition.Cost))
+		if (resourceManager == null || !resourceManager.CanSpend(GetSelectedBuildingCost()))
 		{
 			placementError = "Not enough resources";
 			return false;
@@ -187,6 +202,27 @@ public partial class BuildingPlacer : Node2D
 			SelectedBuildingName,
 			SelectedBuildingCost,
 			statusText);
+	}
+
+	private Dictionary<ResourceType, int> GetSelectedBuildingCost()
+	{
+		Dictionary<ResourceType, int> baseCost = BuildingDefinitions.Get(selectedBuildingType).Cost;
+		return upgradeManager?.GetDiscountedCost(baseCost) ?? new Dictionary<ResourceType, int>(baseCost);
+	}
+
+	private string GetSelectedBuildingCostText()
+	{
+		Dictionary<ResourceType, int> baseCost = BuildingDefinitions.Get(selectedBuildingType).Cost;
+		return upgradeManager?.FormatDiscountedCost(baseCost) ?? BuildingDefinitions.FormatCost(baseCost);
+	}
+
+	private void OnUpgradeApplied(int upgradeType)
+	{
+		if ((UpgradeType)upgradeType == UpgradeType.BuildingCostDiscount)
+		{
+			EmitBuildState();
+			UpdatePreview();
+		}
 	}
 
 	private void UpdatePreview()

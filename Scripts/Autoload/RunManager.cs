@@ -26,9 +26,11 @@ public partial class RunManager : Node
 
 	private EnemySpawner enemySpawner;
 	private Core core;
+	private UpgradeManager upgradeManager;
 	private RunPhase currentPhase = RunPhase.Day;
 	private int currentDay = 1;
 	private int currentNight;
+	private int pendingDay;
 	private float dayTimer;
 	private float spawnTimer;
 	private EnemyType[] currentWave = Array.Empty<EnemyType>();
@@ -49,6 +51,13 @@ public partial class RunManager : Node
 	public override void _Ready()
 	{
 		EnsureRestartInputAction();
+		ProcessMode = ProcessModeEnum.Always;
+		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		if (upgradeManager != null)
+		{
+			upgradeManager.UpgradeApplied += OnUpgradeApplied;
+		}
+
 		ResetRunState();
 	}
 
@@ -143,7 +152,7 @@ public partial class RunManager : Node
 			}
 			else
 			{
-				StartDay(currentNight + 1);
+				StartUpgradeSelection(currentNight + 1);
 			}
 
 			return;
@@ -172,6 +181,15 @@ public partial class RunManager : Node
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
 		EmitRunState();
+	}
+
+	private void StartUpgradeSelection(int nextDay)
+	{
+		currentPhase = RunPhase.UpgradeSelection;
+		pendingDay = nextDay;
+		EmitRunState();
+		upgradeManager?.OfferUpgradeChoices();
+		GetTree().Paused = true;
 	}
 
 	private void SpawnNextEnemy()
@@ -216,6 +234,17 @@ public partial class RunManager : Node
 		}
 	}
 
+	private void OnUpgradeApplied(int upgradeType)
+	{
+		if (currentPhase != RunPhase.UpgradeSelection)
+		{
+			return;
+		}
+
+		GetTree().Paused = false;
+		StartDay(pendingDay);
+	}
+
 	private void StartVictory()
 	{
 		currentPhase = RunPhase.Victory;
@@ -246,7 +275,9 @@ public partial class RunManager : Node
 
 	private void RestartRun()
 	{
+		GetTree().Paused = false;
 		GetNodeOrNull<ResourceManager>("/root/ResourceManager")?.ResetResources();
+		upgradeManager?.ResetUpgrades();
 		ResetRunState();
 		GetTree().ReloadCurrentScene();
 	}
@@ -256,6 +287,7 @@ public partial class RunManager : Node
 		currentPhase = RunPhase.Day;
 		currentDay = 1;
 		currentNight = 0;
+		pendingDay = 0;
 		dayTimer = dayDuration;
 		spawnTimer = 0f;
 		currentWave = Array.Empty<EnemyType>();
@@ -285,6 +317,7 @@ public partial class RunManager : Node
 		{
 			RunPhase.Day => $"Day {currentDay}",
 			RunPhase.Night => $"Night {currentNight}",
+			RunPhase.UpgradeSelection => "Upgrade",
 			RunPhase.Victory => "Victory",
 			RunPhase.Defeat => "Defeat",
 			_ => string.Empty
@@ -297,6 +330,7 @@ public partial class RunManager : Node
 		{
 			RunPhase.Day => $"{Mathf.CeilToInt(dayTimer)}s remaining",
 			RunPhase.Night => $"Enemies: {activeEnemies} | Spawned: {spawnedThisNight}/{currentWave.Length}",
+			RunPhase.UpgradeSelection => "Choose one upgrade",
 			RunPhase.Victory => "You survived 5 nights.",
 			RunPhase.Defeat => "Core destroyed.",
 			_ => string.Empty

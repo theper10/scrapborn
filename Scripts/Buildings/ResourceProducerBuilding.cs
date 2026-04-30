@@ -47,7 +47,19 @@ public partial class ResourceProducerBuilding : Building
 			return;
 		}
 
-		ResourceManager.AddResource(OutputType, outputAmount);
+		ResourceManager.AddResource(OutputType, GetEffectiveOutputAmount());
 		SetStatus(BuildingStatus.Working);
+	}
+
+	private int GetEffectiveOutputAmount()
+	{
+		float multiplier = BuildingType switch
+		{
+			BuildingType.Drill => UpgradeManager?.DrillProductionMultiplier ?? 1f,
+			BuildingType.Generator => UpgradeManager?.GeneratorProductionMultiplier ?? 1f,
+			_ => 1f
+		};
+
+		return Mathf.Max(1, Mathf.RoundToInt(outputAmount * multiplier));
 	}
 }

@@ -67,9 +67,9 @@ public partial class TurretBuilding : Building
 			return;
 		}
 
-		target.TakeDamage(damage);
+		target.TakeDamage(GetEffectiveDamage());
 		ShowShot(target.GlobalPosition);
-		fireTimer = fireInterval;
+		fireTimer = GetEffectiveFireInterval();
 		SetStatus(BuildingStatus.Working);
 	}
 
@@ -124,5 +124,17 @@ public partial class TurretBuilding : Building
 		{
 			shotLine.Visible = false;
 		}
+	}
+
+	private int GetEffectiveDamage()
+	{
+		float damageMultiplier = UpgradeManager?.TurretDamageMultiplier ?? 1f;
+		return Mathf.Max(1, Mathf.RoundToInt(damage * damageMultiplier));
+	}
+
+	private float GetEffectiveFireInterval()
+	{
+		float fireRateMultiplier = UpgradeManager?.TurretFireRateMultiplier ?? 1f;
+		return fireInterval / fireRateMultiplier;
 	}
 }

@@ -8,15 +8,18 @@ public partial class Building : Node2D
 	private Label statusLabel;
 	private CanvasItem statusIndicator;
 	private ResourceManager resourceManager;
+	private UpgradeManager upgradeManager;
 	private BuildingStatus status = BuildingStatus.Idle;
 
 	public string DisplayName => BuildingDefinitions.Get(BuildingType).DisplayName;
 	public BuildingStatus Status => status;
 	protected ResourceManager ResourceManager => resourceManager;
+	protected UpgradeManager UpgradeManager => upgradeManager;
 
 	public override void _Ready()
 	{
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
+		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
 		statusLabel = GetNodeOrNull<Label>("StatusLabel");
 		statusIndicator = GetNodeOrNull<CanvasItem>("StatusIndicator");
 		SetStatus(BuildingStatus.Idle);

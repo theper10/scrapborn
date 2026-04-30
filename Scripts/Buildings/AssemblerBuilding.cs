@@ -20,7 +20,7 @@ public partial class AssemblerBuilding : Building
 	public override void _Process(double delta)
 	{
 		productionTimer += delta;
-		if (productionTimer < productionInterval)
+		if (productionTimer < GetEffectiveProductionInterval())
 		{
 			return;
 		}
@@ -58,5 +58,11 @@ public partial class AssemblerBuilding : Building
 		ResourceManager.Spend(cost);
 		ResourceManager.AddResource(ResourceType.Ammo, ammoOutput);
 		SetStatus(BuildingStatus.Working);
+	}
+
+	private float GetEffectiveProductionInterval()
+	{
+		float speedMultiplier = UpgradeManager?.AssemblerSpeedMultiplier ?? 1f;
+		return productionInterval / speedMultiplier;
 	}
 }

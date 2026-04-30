@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/Player/Player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://Scripts/Buildings/BuildingPlacer.cs" id="5_placer"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/UpgradeScreen.tscn" id="6_upgrade"]
 
 [node name="Main" type="Node2D" unique_id=1293990018]
 script = ExtResource("1_main")
@@ -18,3 +19,5 @@ position = Vector2(0, 120)
 script = ExtResource("5_placer")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
+
+[node name="UpgradeScreen" parent="." instance=ExtResource("6_upgrade")]

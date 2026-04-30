@@ -17,20 +17,41 @@ public partial class PlayerController : CharacterBody2D
 	[Export]
 	private int maxHealth = 100;
 
+	private UpgradeManager upgradeManager;
+	private float baseMoveSpeed;
+	private int baseMaxHealth;
+
 	public int CurrentHealth { get; private set; }
 	public int MaxHealth => maxHealth;
 
 	public override void _Ready()
 	{
 		EnsureMovementActions();
+		baseMoveSpeed = moveSpeed;
+		baseMaxHealth = maxHealth;
+		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		if (upgradeManager != null)
+		{
+			upgradeManager.UpgradeApplied += OnUpgradeApplied;
+			maxHealth = baseMaxHealth + upgradeManager.PlayerMaxHealthBonus;
+		}
+
 		CurrentHealth = maxHealth;
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
+	}
+
+	public override void _ExitTree()
+	{
+		if (upgradeManager != null)
+		{
+			upgradeManager.UpgradeApplied -= OnUpgradeApplied;
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		Vector2 inputDirection = Input.GetVector(MoveLeftAction, MoveRightAction, MoveUpAction, MoveDownAction);
-		Velocity = inputDirection * moveSpeed;
+		Velocity = inputDirection * GetEffectiveMoveSpeed();
 		MoveAndSlide();
 	}
 
@@ -42,6 +63,24 @@ public partial class PlayerController : CharacterBody2D
 		}
 
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
+	}
+
+	private float GetEffectiveMoveSpeed()
+	{
+		return baseMoveSpeed * (upgradeManager?.PlayerMoveSpeedMultiplier ?? 1f);
+	}
+
+	private void OnUpgradeApplied(int upgradeType)
+	{
+		if ((UpgradeType)upgradeType != UpgradeType.PlayerMaxHealth)
+		{
+			return;
+		}
+
+		int previousMaxHealth = maxHealth;
+		maxHealth = baseMaxHealth + (upgradeManager?.PlayerMaxHealthBonus ?? 0);
+		CurrentHealth = Math.Clamp(CurrentHealth + maxHealth - previousMaxHealth, 0, maxHealth);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
 	}
 
