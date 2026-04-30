@@ -19,6 +19,12 @@ points = PackedVector2Array(0, 0, 0, -26)
 width = 7.0
 default_color = Color(0.92, 0.82, 0.54, 1)
 
+[node name="ShotLine" type="Line2D" parent="."]
+visible = false
+points = PackedVector2Array(0, 0, 0, -64)
+width = 3.0
+default_color = Color(1, 0.96, 0.45, 0.85)
+
 [node name="Label" type="Label" parent="."]
 offset_left = -20.0
 offset_top = -4.0

@@ -1,7 +1,8 @@
-[gd_scene format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://Scenes/World/Core.tscn" id="1_core"]
 [ext_resource type="PackedScene" path="res://Scenes/Resources/ScrapDeposit.tscn" id="2_scrap_deposit"]
+[ext_resource type="Script" path="res://Scripts/Enemies/EnemySpawner.cs" id="3_spawner"]
 
 [node name="TestWorld" type="Node2D"]
 
@@ -72,6 +73,11 @@ default_color = Color(0.24, 0.26, 0.23, 0.65)
 [node name="Core" parent="." instance=ExtResource("1_core")]
 
 [node name="Buildings" type="Node2D" parent="."]
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("3_spawner")
 
 [node name="ScrapDepositNorthWest" parent="." instance=ExtResource("2_scrap_deposit")]
 position = Vector2(-280, -180)

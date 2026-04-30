@@ -11,6 +11,7 @@ public partial class Core : Node2D
 
 	public int CurrentHealth { get; private set; }
 	public int MaxHealth => maxHealth;
+	public bool IsDestroyed => CurrentHealth <= 0;
 
 	public override void _Ready()
 	{

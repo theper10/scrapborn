@@ -51,6 +51,11 @@ text = "Press E to gather Scrap"
 [node name="BuildStatusLabel" type="Label" parent="Root/VBox"]
 text = "Build: Off"
 
+[node name="GlobalMessageLabel" type="Label" parent="Root/VBox"]
+visible = false
+text = "Core destroyed"
+horizontal_alignment = 1
+
 [node name="PlayerHealthLabel" type="Label" parent="Root/VBox"]
 text = "Player: 0 / 0"
 

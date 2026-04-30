@@ -13,6 +13,7 @@ public partial class HudController : CanvasLayer
 	private Label ammoLabel;
 	private Label interactionHintLabel;
 	private Label buildStatusLabel;
+	private Label globalMessageLabel;
 	private Label playerHealthLabel;
 	private Label coreHealthLabel;
 	private ProgressBar playerHealthBar;
@@ -60,6 +61,7 @@ public partial class HudController : CanvasLayer
 		ammoLabel = GetNode<Label>("Root/VBox/Resources/AmmoLabel");
 		interactionHintLabel = GetNode<Label>("Root/VBox/InteractionHintLabel");
 		buildStatusLabel = GetNode<Label>("Root/VBox/BuildStatusLabel");
+		globalMessageLabel = GetNode<Label>("Root/VBox/GlobalMessageLabel");
 		playerHealthLabel = GetNode<Label>("Root/VBox/PlayerHealthLabel");
 		coreHealthLabel = GetNode<Label>("Root/VBox/CoreHealthLabel");
 		playerHealthBar = GetNode<ProgressBar>("Root/VBox/PlayerHealthBar");
@@ -158,6 +160,8 @@ public partial class HudController : CanvasLayer
 		coreHealthLabel.Text = $"Core: {currentHealth} / {maxHealth}";
 		coreHealthBar.MaxValue = maxHealth;
 		coreHealthBar.Value = currentHealth;
+		globalMessageLabel.Visible = currentHealth <= 0;
+		globalMessageLabel.Text = currentHealth <= 0 ? "Core destroyed" : string.Empty;
 	}
 
 	private void UpdateInteractionHint(string hintText, bool isVisible)
