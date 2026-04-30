@@ -47,7 +47,8 @@ public partial class ResourceProducerBuilding : Building
 			return;
 		}
 
-		ResourceManager.AddResource(OutputType, GetEffectiveOutputAmount());
+		int producedAmount = ResourceManager.AddResource(OutputType, GetEffectiveOutputAmount());
+		RecordProducedAmount(producedAmount);
 		SetStatus(BuildingStatus.Working);
 	}
 
@@ -61,5 +62,28 @@ public partial class ResourceProducerBuilding : Building
 		};
 
 		return Mathf.Max(1, Mathf.RoundToInt(outputAmount * multiplier));
+	}
+
+	private void RecordProducedAmount(int amount)
+	{
+		if (amount <= 0)
+		{
+			return;
+		}
+
+		RunManager runManager = GetNodeOrNull<RunManager>("/root/RunManager");
+		if (runManager == null)
+		{
+			return;
+		}
+
+		if (BuildingType == BuildingType.Drill && OutputType == ResourceType.Scrap)
+		{
+			runManager.RecordScrapProducedByDrill(amount);
+		}
+		else if (BuildingType == BuildingType.Generator && OutputType == ResourceType.Energy)
+		{
+			runManager.RecordEnergyProduced(amount);
+		}
 	}
 }

@@ -144,6 +144,7 @@ public partial class BuildingPlacer : Node2D
 		building.GlobalPosition = CellToWorldPosition(targetCell);
 		buildingsRoot.AddChild(building);
 		placedBuildings[targetCell] = building;
+		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordBuildingPlaced();
 		SetStatus($"{definition.DisplayName} placed");
 	}
 

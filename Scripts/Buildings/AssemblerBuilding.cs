@@ -56,7 +56,8 @@ public partial class AssemblerBuilding : Building
 		}
 
 		ResourceManager.Spend(cost);
-		ResourceManager.AddResource(ResourceType.Ammo, ammoOutput);
+		int producedAmmo = ResourceManager.AddResource(ResourceType.Ammo, ammoOutput);
+		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordAmmoProduced(producedAmmo);
 		SetStatus(BuildingStatus.Working);
 	}
 

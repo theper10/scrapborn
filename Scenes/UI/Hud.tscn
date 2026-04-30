@@ -47,6 +47,10 @@ text = "Ammo: 0 / 0"
 [node name="RunStatusLabel" type="Label" parent="Root/VBox"]
 text = "Day 1 - 90s remaining"
 
+[node name="RunStatsLabel" type="Label" parent="Root/VBox"]
+text = "Stats: Kills 0 | Buildings 0 | Manual Scrap 0 | Drill Scrap 0 | Energy 0 | Ammo 0 | Upgrades 0 | Nights 0"
+autowrap_mode = 3
+
 [node name="InteractionHintLabel" type="Label" parent="Root/VBox"]
 visible = false
 text = "Press E to gather Scrap"

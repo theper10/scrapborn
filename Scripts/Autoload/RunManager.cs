@@ -12,8 +12,6 @@ public partial class RunManager : Node
 		bool isRunOver);
 
 	private const string RestartRunAction = "RestartRun";
-	private const int FinalNight = 5;
-	private const float SpawnInterval = 1f;
 
 	private readonly Dictionary<int, EnemyType[]> waveDefinitions = new()
 	{
@@ -36,9 +34,16 @@ public partial class RunManager : Node
 	private EnemyType[] currentWave = Array.Empty<EnemyType>();
 	private int spawnedThisNight;
 	private int activeEnemies;
+	private readonly RunStats stats = new();
 
 	[Export]
 	private float dayDuration = 90f;
+
+	[Export]
+	private float spawnInterval = 1f;
+
+	[Export]
+	private int maxNights = 5;
 
 	public RunPhase CurrentPhase => currentPhase;
 	public int CurrentDay => currentDay;
@@ -47,6 +52,7 @@ public partial class RunManager : Node
 	public int SpawnedThisNight => spawnedThisNight;
 	public int TotalEnemiesThisNight => currentWave.Length;
 	public bool IsRunOver => IsRunOverInternal();
+	public RunStats Stats => stats;
 
 	public override void _Ready()
 	{
@@ -140,13 +146,15 @@ public partial class RunManager : Node
 			if (spawnTimer <= 0f)
 			{
 				SpawnNextEnemy();
-				spawnTimer = SpawnInterval;
+				spawnTimer = spawnInterval;
 			}
 		}
 
 		if (spawnedThisNight >= currentWave.Length && activeEnemies <= 0)
 		{
-			if (currentNight >= FinalNight)
+			stats.RecordNightSurvived();
+
+			if (currentNight >= GetMaxNight())
 			{
 				StartVictory();
 			}
@@ -177,7 +185,7 @@ public partial class RunManager : Node
 	{
 		currentPhase = RunPhase.Night;
 		currentNight = night;
-		currentWave = waveDefinitions[night];
+		currentWave = waveDefinitions[Mathf.Clamp(night, 1, waveDefinitions.Count)];
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
 		EmitRunState();
@@ -223,6 +231,7 @@ public partial class RunManager : Node
 		}
 
 		activeEnemies = Math.Max(0, activeEnemies - 1);
+		stats.RecordEnemyKilled();
 		EmitRunState();
 	}
 
@@ -242,6 +251,7 @@ public partial class RunManager : Node
 		}
 
 		GetTree().Paused = false;
+		stats.RecordUpgradeChosen();
 		StartDay(pendingDay);
 	}
 
@@ -293,7 +303,33 @@ public partial class RunManager : Node
 		currentWave = Array.Empty<EnemyType>();
 		spawnedThisNight = 0;
 		activeEnemies = 0;
+		stats.Reset();
 		EmitRunState();
+	}
+
+	public void RecordBuildingPlaced()
+	{
+		stats.RecordBuildingPlaced();
+	}
+
+	public void RecordScrapGatheredManually(int amount)
+	{
+		stats.RecordScrapGatheredManually(amount);
+	}
+
+	public void RecordScrapProducedByDrill(int amount)
+	{
+		stats.RecordScrapProducedByDrill(amount);
+	}
+
+	public void RecordEnergyProduced(int amount)
+	{
+		stats.RecordEnergyProduced(amount);
+	}
+
+	public void RecordAmmoProduced(int amount)
+	{
+		stats.RecordAmmoProduced(amount);
 	}
 
 	private bool IsRunOverInternal()
@@ -335,6 +371,11 @@ public partial class RunManager : Node
 			RunPhase.Defeat => "Core destroyed.",
 			_ => string.Empty
 		};
+	}
+
+	private int GetMaxNight()
+	{
+		return Mathf.Clamp(maxNights, 1, waveDefinitions.Count);
 	}
 
 	private string GetMessageText()

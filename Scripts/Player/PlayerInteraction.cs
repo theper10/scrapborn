@@ -126,6 +126,7 @@ public partial class PlayerInteraction : Area2D
 		}
 
 		resourceManager.AddResource(ResourceType.Scrap, gatheredAmount);
+		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordScrapGatheredManually(gatheredAmount);
 		RefreshHint();
 		return true;
 	}

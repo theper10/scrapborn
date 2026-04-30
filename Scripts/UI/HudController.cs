@@ -13,6 +13,7 @@ public partial class HudController : CanvasLayer
 	private Label energyLabel;
 	private Label ammoLabel;
 	private Label runStatusLabel;
+	private Label runStatsLabel;
 	private Label interactionHintLabel;
 	private Label buildStatusLabel;
 	private Label globalMessageLabel;
@@ -67,6 +68,7 @@ public partial class HudController : CanvasLayer
 		energyLabel = GetNode<Label>("Root/VBox/Resources/EnergyLabel");
 		ammoLabel = GetNode<Label>("Root/VBox/Resources/AmmoLabel");
 		runStatusLabel = GetNode<Label>("Root/VBox/RunStatusLabel");
+		runStatsLabel = GetNode<Label>("Root/VBox/RunStatsLabel");
 		interactionHintLabel = GetNode<Label>("Root/VBox/InteractionHintLabel");
 		buildStatusLabel = GetNode<Label>("Root/VBox/BuildStatusLabel");
 		globalMessageLabel = GetNode<Label>("Root/VBox/GlobalMessageLabel");
@@ -216,6 +218,7 @@ public partial class HudController : CanvasLayer
 		runStatusLabel.Text = string.IsNullOrEmpty(detailText)
 			? phaseText
 			: $"{phaseText} - {detailText}";
+		runStatsLabel.Text = runManager?.Stats.ToDebugString() ?? string.Empty;
 
 		globalMessageLabel.Visible = isRunOver;
 		globalMessageLabel.Text = messageText;
