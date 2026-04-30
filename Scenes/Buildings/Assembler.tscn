@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://Scripts/Buildings/Building.cs" id="1_building"]
+[ext_resource type="Script" path="res://Scripts/Buildings/AssemblerBuilding.cs" id="1_building"]
 
 [node name="Assembler" type="Node2D"]
 script = ExtResource("1_building")
@@ -26,5 +26,19 @@ offset_top = -9.0
 offset_right = 20.0
 offset_bottom = 11.0
 text = "A"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusIndicator" type="Polygon2D" parent="."]
+position = Vector2(18, -18)
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-4, -4, 4, -4, 4, 4, -4, 4)
+
+[node name="StatusLabel" type="Label" parent="."]
+offset_left = -52.0
+offset_top = -48.0
+offset_right = 52.0
+offset_bottom = -28.0
+text = "Idle"
 horizontal_alignment = 1
 vertical_alignment = 1

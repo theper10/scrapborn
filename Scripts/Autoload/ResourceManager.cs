@@ -76,6 +76,34 @@ public partial class ResourceManager : Node
 		return maxValues.TryGetValue(type, out int value) ? value : 0;
 	}
 
+	public void AddMaxResource(ResourceType type, int amount)
+	{
+		if (amount == 0)
+		{
+			return;
+		}
+
+		maxValues[type] = Math.Max(0, GetMax(type) + amount);
+		amounts[type] = Math.Clamp(GetAmount(type), 0, GetMax(type));
+		EmitSignal(SignalName.ResourcesChanged);
+	}
+
+	public void AddMaxResources(Dictionary<ResourceType, int> bonuses)
+	{
+		if (bonuses == null || bonuses.Count == 0)
+		{
+			return;
+		}
+
+		foreach (KeyValuePair<ResourceType, int> bonus in bonuses)
+		{
+			maxValues[bonus.Key] = Math.Max(0, GetMax(bonus.Key) + bonus.Value);
+			amounts[bonus.Key] = Math.Clamp(GetAmount(bonus.Key), 0, GetMax(bonus.Key));
+		}
+
+		EmitSignal(SignalName.ResourcesChanged);
+	}
+
 	public int GetAvailableSpace(ResourceType type)
 	{
 		return Math.Max(0, GetMax(type) - GetAmount(type));
