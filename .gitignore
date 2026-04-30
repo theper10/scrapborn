@@ -1,0 +1,21 @@
+# Godot generated files
+.godot/
+.import/
+
+# Godot export settings
+export.cfg
+export_presets.cfg
+
+# .NET / C#
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.csproj.user
+*.md
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
