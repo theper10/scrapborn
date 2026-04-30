@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public partial class EnemySpawner : Node2D
 {
+	[Signal]
+	public delegate void EnemySpawnedEventHandler(Enemy enemy);
+
 	private const string SpawnCrawlerTestAction = "SpawnCrawlerTest";
 	private const string SpawnFastTestAction = "SpawnFastTest";
 	private const string SpawnTankTestAction = "SpawnTankTest";
@@ -22,6 +25,12 @@ public partial class EnemySpawner : Node2D
 
 	public override void _Process(double delta)
 	{
+		RunManager runManager = GetNodeOrNull<RunManager>("/root/RunManager");
+		if (runManager != null && runManager.IsRunOver)
+		{
+			return;
+		}
+
 		if (Input.IsActionJustPressed(SpawnCrawlerTestAction))
 		{
 			SpawnEnemy(EnemyType.Crawler);
@@ -36,19 +45,21 @@ public partial class EnemySpawner : Node2D
 		}
 	}
 
-	private void SpawnEnemy(EnemyType enemyType)
+	public Enemy SpawnEnemy(EnemyType enemyType)
 	{
 		if (enemiesRoot == null ||
 		    !enemyScenes.TryGetValue(enemyType, out PackedScene scene) ||
 		    scene == null)
 		{
 			GD.PushWarning($"Could not spawn {EnemyDefinitions.Get(enemyType).DisplayName}.");
-			return;
+			return null;
 		}
 
 		Enemy enemy = scene.Instantiate<Enemy>();
 		enemy.GlobalPosition = GetSpawnPosition();
 		enemiesRoot.AddChild(enemy);
+		EmitSignal(SignalName.EnemySpawned, enemy);
+		return enemy;
 	}
 
 	private Vector2 GetSpawnPosition()

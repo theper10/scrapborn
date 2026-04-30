@@ -44,6 +44,9 @@ text = "Energy: 0 / 0"
 [node name="AmmoLabel" type="Label" parent="Root/VBox/Resources"]
 text = "Ammo: 0 / 0"
 
+[node name="RunStatusLabel" type="Label" parent="Root/VBox"]
+text = "Day 1 - 90s remaining"
+
 [node name="InteractionHintLabel" type="Label" parent="Root/VBox"]
 visible = false
 text = "Press E to gather Scrap"

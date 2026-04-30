@@ -3,6 +3,9 @@ using System;
 
 public partial class Enemy : CharacterBody2D
 {
+	[Signal]
+	public delegate void DiedEventHandler(Enemy enemy);
+
 	[Export]
 	private int maxHealth = 30;
 
@@ -73,6 +76,7 @@ public partial class Enemy : CharacterBody2D
 
 		if (currentHealth <= 0)
 		{
+			EmitSignal(SignalName.Died, this);
 			QueueFree();
 		}
 	}

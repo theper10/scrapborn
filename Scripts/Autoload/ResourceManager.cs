@@ -27,6 +27,17 @@ public partial class ResourceManager : Node
 		EmitSignal(SignalName.ResourcesChanged);
 	}
 
+	public void ResetResources()
+	{
+		amounts[ResourceType.Scrap] = 50;
+		amounts[ResourceType.Energy] = 0;
+		amounts[ResourceType.Ammo] = 0;
+		maxValues[ResourceType.Scrap] = 200;
+		maxValues[ResourceType.Energy] = 100;
+		maxValues[ResourceType.Ammo] = 100;
+		EmitSignal(SignalName.ResourcesChanged);
+	}
+
 	public int AddResource(ResourceType type, int amount)
 	{
 		return SetAmount(type, GetAmount(type) + amount);

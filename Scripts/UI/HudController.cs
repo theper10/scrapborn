@@ -3,6 +3,7 @@ using Godot;
 public partial class HudController : CanvasLayer
 {
 	private ResourceManager resourceManager;
+	private RunManager runManager;
 	private PlayerController player;
 	private PlayerInteraction playerInteraction;
 	private BuildingPlacer buildingPlacer;
@@ -11,6 +12,7 @@ public partial class HudController : CanvasLayer
 	private Label scrapLabel;
 	private Label energyLabel;
 	private Label ammoLabel;
+	private Label runStatusLabel;
 	private Label interactionHintLabel;
 	private Label buildStatusLabel;
 	private Label globalMessageLabel;
@@ -31,6 +33,11 @@ public partial class HudController : CanvasLayer
 		if (resourceManager != null)
 		{
 			resourceManager.ResourcesChanged -= RefreshResources;
+		}
+
+		if (runManager != null)
+		{
+			runManager.RunStateChanged -= UpdateRunStatus;
 		}
 
 		if (player != null)
@@ -59,6 +66,7 @@ public partial class HudController : CanvasLayer
 		scrapLabel = GetNode<Label>("Root/VBox/Resources/ScrapLabel");
 		energyLabel = GetNode<Label>("Root/VBox/Resources/EnergyLabel");
 		ammoLabel = GetNode<Label>("Root/VBox/Resources/AmmoLabel");
+		runStatusLabel = GetNode<Label>("Root/VBox/RunStatusLabel");
 		interactionHintLabel = GetNode<Label>("Root/VBox/InteractionHintLabel");
 		buildStatusLabel = GetNode<Label>("Root/VBox/BuildStatusLabel");
 		globalMessageLabel = GetNode<Label>("Root/VBox/GlobalMessageLabel");
@@ -80,6 +88,16 @@ public partial class HudController : CanvasLayer
 
 		resourceManager.ResourcesChanged += RefreshResources;
 		RefreshResources();
+
+		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
+		if (runManager != null)
+		{
+			runManager.RunStateChanged += UpdateRunStatus;
+		}
+		else
+		{
+			GD.PushWarning("Hud could not find the RunManager autoload.");
+		}
 	}
 
 	private void ConnectHealthSources()
@@ -160,8 +178,12 @@ public partial class HudController : CanvasLayer
 		coreHealthLabel.Text = $"Core: {currentHealth} / {maxHealth}";
 		coreHealthBar.MaxValue = maxHealth;
 		coreHealthBar.Value = currentHealth;
-		globalMessageLabel.Visible = currentHealth <= 0;
-		globalMessageLabel.Text = currentHealth <= 0 ? "Core destroyed" : string.Empty;
+
+		if (runManager == null)
+		{
+			globalMessageLabel.Visible = currentHealth <= 0;
+			globalMessageLabel.Text = currentHealth <= 0 ? "Core destroyed" : string.Empty;
+		}
 	}
 
 	private void UpdateInteractionHint(string hintText, bool isVisible)
@@ -183,5 +205,19 @@ public partial class HudController : CanvasLayer
 		{
 			buildStatusLabel.Text += $"\n{statusText}";
 		}
+	}
+
+	private void UpdateRunStatus(
+		string phaseText,
+		string detailText,
+		string messageText,
+		bool isRunOver)
+	{
+		runStatusLabel.Text = string.IsNullOrEmpty(detailText)
+			? phaseText
+			: $"{phaseText} - {detailText}";
+
+		globalMessageLabel.Visible = isRunOver;
+		globalMessageLabel.Text = messageText;
 	}
 }
