@@ -9,8 +9,8 @@ script = ExtResource("1_hud_script")
 [node name="Root" type="Control" parent="."]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 316.0
-offset_bottom = 228.0
+offset_right = 360.0
+offset_bottom = 288.0
 
 [node name="Background" type="ColorRect" parent="Root"]
 anchors_preset = 15
@@ -47,6 +47,9 @@ text = "Ammo: 0 / 0"
 [node name="InteractionHintLabel" type="Label" parent="Root/VBox"]
 visible = false
 text = "Press E to gather Scrap"
+
+[node name="BuildStatusLabel" type="Label" parent="Root/VBox"]
+text = "Build: Off"
 
 [node name="PlayerHealthLabel" type="Label" parent="Root/VBox"]
 text = "Player: 0 / 0"

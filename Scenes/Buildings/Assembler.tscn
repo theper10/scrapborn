@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Buildings/Building.cs" id="1_building"]
+
+[node name="Assembler" type="Node2D"]
+script = ExtResource("1_building")
+BuildingType = 2
+
+[node name="Base" type="Polygon2D" parent="."]
+color = Color(0.34, 0.29, 0.38, 1)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="ArmA" type="Line2D" parent="."]
+points = PackedVector2Array(-16, 12, 0, -2, 16, 12)
+width = 5.0
+default_color = Color(0.88, 0.78, 0.46, 1)
+
+[node name="ArmB" type="Line2D" parent="."]
+points = PackedVector2Array(-14, -12, 0, 3, 14, -12)
+width = 5.0
+default_color = Color(0.72, 0.66, 0.88, 1)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -9.0
+offset_right = 20.0
+offset_bottom = 11.0
+text = "A"
+horizontal_alignment = 1
+vertical_alignment = 1

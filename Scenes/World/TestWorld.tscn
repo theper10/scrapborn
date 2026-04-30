@@ -71,6 +71,8 @@ default_color = Color(0.24, 0.26, 0.23, 0.65)
 
 [node name="Core" parent="." instance=ExtResource("1_core")]
 
+[node name="Buildings" type="Node2D" parent="."]
+
 [node name="ScrapDepositNorthWest" parent="." instance=ExtResource("2_scrap_deposit")]
 position = Vector2(-280, -180)
 

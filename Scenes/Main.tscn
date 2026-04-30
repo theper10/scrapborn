@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/World/TestWorld.tscn" id="2_world"]
 [ext_resource type="PackedScene" path="res://Scenes/Player/Player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Hud.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://Scripts/Buildings/BuildingPlacer.cs" id="5_placer"]
 
 [node name="Main" type="Node2D" unique_id=1293990018]
 script = ExtResource("1_main")
@@ -12,5 +13,8 @@ script = ExtResource("1_main")
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector2(0, 120)
+
+[node name="BuildingPlacer" type="Node2D" parent="."]
+script = ExtResource("5_placer")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]

@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Buildings/Building.cs" id="1_building"]
+
+[node name="Generator" type="Node2D"]
+script = ExtResource("1_building")
+BuildingType = 1
+
+[node name="Base" type="Polygon2D" parent="."]
+color = Color(0.25, 0.31, 0.34, 1)
+polygon = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
+
+[node name="Coil" type="Polygon2D" parent="."]
+color = Color(0.36, 0.88, 0.94, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 20, 0, 14, 14, -14, 14, -20, 0)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -9.0
+offset_right = 20.0
+offset_bottom = 11.0
+text = "G"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -5,12 +5,14 @@ public partial class HudController : CanvasLayer
 	private ResourceManager resourceManager;
 	private PlayerController player;
 	private PlayerInteraction playerInteraction;
+	private BuildingPlacer buildingPlacer;
 	private Core core;
 
 	private Label scrapLabel;
 	private Label energyLabel;
 	private Label ammoLabel;
 	private Label interactionHintLabel;
+	private Label buildStatusLabel;
 	private Label playerHealthLabel;
 	private Label coreHealthLabel;
 	private ProgressBar playerHealthBar;
@@ -40,6 +42,11 @@ public partial class HudController : CanvasLayer
 			playerInteraction.InteractionHintChanged -= UpdateInteractionHint;
 		}
 
+		if (buildingPlacer != null)
+		{
+			buildingPlacer.BuildStateChanged -= UpdateBuildStatus;
+		}
+
 		if (core != null)
 		{
 			core.HealthChanged -= UpdateCoreHealth;
@@ -52,6 +59,7 @@ public partial class HudController : CanvasLayer
 		energyLabel = GetNode<Label>("Root/VBox/Resources/EnergyLabel");
 		ammoLabel = GetNode<Label>("Root/VBox/Resources/AmmoLabel");
 		interactionHintLabel = GetNode<Label>("Root/VBox/InteractionHintLabel");
+		buildStatusLabel = GetNode<Label>("Root/VBox/BuildStatusLabel");
 		playerHealthLabel = GetNode<Label>("Root/VBox/PlayerHealthLabel");
 		coreHealthLabel = GetNode<Label>("Root/VBox/CoreHealthLabel");
 		playerHealthBar = GetNode<ProgressBar>("Root/VBox/PlayerHealthBar");
@@ -104,6 +112,21 @@ public partial class HudController : CanvasLayer
 		{
 			GD.PushWarning("Hud could not find the Core node.");
 		}
+
+		buildingPlacer = parent?.GetNodeOrNull<BuildingPlacer>("BuildingPlacer");
+		if (buildingPlacer != null)
+		{
+			buildingPlacer.BuildStateChanged += UpdateBuildStatus;
+			UpdateBuildStatus(
+				buildingPlacer.IsBuildModeActive,
+				buildingPlacer.SelectedBuildingName,
+				buildingPlacer.SelectedBuildingCost,
+				buildingPlacer.StatusText);
+		}
+		else
+		{
+			GD.PushWarning("Hud could not find the BuildingPlacer node.");
+		}
 	}
 
 	private void RefreshResources()
@@ -141,5 +164,20 @@ public partial class HudController : CanvasLayer
 	{
 		interactionHintLabel.Text = hintText;
 		interactionHintLabel.Visible = isVisible;
+	}
+
+	private void UpdateBuildStatus(
+		bool isBuildModeActive,
+		string selectedBuildingName,
+		string selectedBuildingCost,
+		string statusText)
+	{
+		string modeText = isBuildModeActive ? "On" : "Off";
+		buildStatusLabel.Text = $"Build: {modeText}\nSelected: {selectedBuildingName}\nCost: {selectedBuildingCost}";
+
+		if (!string.IsNullOrEmpty(statusText))
+		{
+			buildStatusLabel.Text += $"\n{statusText}";
+		}
 	}
 }
