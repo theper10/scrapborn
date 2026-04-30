@@ -27,9 +27,9 @@ public partial class ResourceManager : Node
 		EmitSignal(SignalName.ResourcesChanged);
 	}
 
-	public void AddResource(ResourceType type, int amount)
+	public int AddResource(ResourceType type, int amount)
 	{
-		SetAmount(type, GetAmount(type) + amount);
+		return SetAmount(type, GetAmount(type) + amount);
 	}
 
 	public bool CanSpend(Dictionary<ResourceType, int> cost)
@@ -76,10 +76,27 @@ public partial class ResourceManager : Node
 		return maxValues.TryGetValue(type, out int value) ? value : 0;
 	}
 
-	private void SetAmount(ResourceType type, int value)
+	public int GetAvailableSpace(ResourceType type)
 	{
+		return Math.Max(0, GetMax(type) - GetAmount(type));
+	}
+
+	public bool IsFull(ResourceType type)
+	{
+		return GetAvailableSpace(type) <= 0;
+	}
+
+	private int SetAmount(ResourceType type, int value)
+	{
+		int previousAmount = GetAmount(type);
 		amounts[type] = Math.Clamp(value, 0, GetMax(type));
-		EmitSignal(SignalName.ResourcesChanged);
+
+		if (amounts[type] != previousAmount)
+		{
+			EmitSignal(SignalName.ResourcesChanged);
+		}
+
+		return amounts[type] - previousAmount;
 	}
 
 	private void ClampAllResources()

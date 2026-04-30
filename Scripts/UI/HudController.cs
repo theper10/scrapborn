@@ -4,11 +4,13 @@ public partial class HudController : CanvasLayer
 {
 	private ResourceManager resourceManager;
 	private PlayerController player;
+	private PlayerInteraction playerInteraction;
 	private Core core;
 
 	private Label scrapLabel;
 	private Label energyLabel;
 	private Label ammoLabel;
+	private Label interactionHintLabel;
 	private Label playerHealthLabel;
 	private Label coreHealthLabel;
 	private ProgressBar playerHealthBar;
@@ -33,6 +35,11 @@ public partial class HudController : CanvasLayer
 			player.HealthChanged -= UpdatePlayerHealth;
 		}
 
+		if (playerInteraction != null)
+		{
+			playerInteraction.InteractionHintChanged -= UpdateInteractionHint;
+		}
+
 		if (core != null)
 		{
 			core.HealthChanged -= UpdateCoreHealth;
@@ -44,6 +51,7 @@ public partial class HudController : CanvasLayer
 		scrapLabel = GetNode<Label>("Root/VBox/Resources/ScrapLabel");
 		energyLabel = GetNode<Label>("Root/VBox/Resources/EnergyLabel");
 		ammoLabel = GetNode<Label>("Root/VBox/Resources/AmmoLabel");
+		interactionHintLabel = GetNode<Label>("Root/VBox/InteractionHintLabel");
 		playerHealthLabel = GetNode<Label>("Root/VBox/PlayerHealthLabel");
 		coreHealthLabel = GetNode<Label>("Root/VBox/CoreHealthLabel");
 		playerHealthBar = GetNode<ProgressBar>("Root/VBox/PlayerHealthBar");
@@ -73,6 +81,13 @@ public partial class HudController : CanvasLayer
 		{
 			player.HealthChanged += UpdatePlayerHealth;
 			UpdatePlayerHealth(player.CurrentHealth, player.MaxHealth);
+
+			playerInteraction = player.GetNodeOrNull<PlayerInteraction>("InteractionRange");
+			if (playerInteraction != null)
+			{
+				playerInteraction.InteractionHintChanged += UpdateInteractionHint;
+				UpdateInteractionHint(playerInteraction.CurrentHintText, playerInteraction.IsHintVisible);
+			}
 		}
 		else
 		{
@@ -120,5 +135,11 @@ public partial class HudController : CanvasLayer
 		coreHealthLabel.Text = $"Core: {currentHealth} / {maxHealth}";
 		coreHealthBar.MaxValue = maxHealth;
 		coreHealthBar.Value = currentHealth;
+	}
+
+	private void UpdateInteractionHint(string hintText, bool isVisible)
+	{
+		interactionHintLabel.Text = hintText;
+		interactionHintLabel.Visible = isVisible;
 	}
 }
