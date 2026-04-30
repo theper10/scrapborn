@@ -15,6 +15,10 @@ run/main_scene="uid://btutc5f1xxphx"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+ResourceManager="*res://Scripts/Autoload/ResourceManager.cs"
+
 [dotnet]
 
 project/assembly_name="Scrapborn"

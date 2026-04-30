@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Resources/ScrapDeposit.cs" id="1_deposit_script"]
+
+[node name="ScrapDeposit" type="Node2D"]
+script = ExtResource("1_deposit_script")
+
+[node name="Rock" type="Polygon2D" parent="."]
+color = Color(0.46, 0.4, 0.34, 1)
+polygon = PackedVector2Array(0, -24, 20, -12, 24, 9, 5, 24, -20, 16, -25, -5)
+
+[node name="MetalChunkA" type="Polygon2D" parent="."]
+color = Color(0.76, 0.74, 0.66, 1)
+polygon = PackedVector2Array(-8, -12, 8, -15, 11, -3, -6, 0)
+
+[node name="MetalChunkB" type="Polygon2D" parent="."]
+color = Color(0.58, 0.67, 0.69, 1)
+polygon = PackedVector2Array(-13, 6, 4, 4, 7, 16, -10, 18)

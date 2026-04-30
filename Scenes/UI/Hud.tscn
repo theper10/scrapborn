@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/HudController.cs" id="1_hud_script"]
+
+[node name="Hud" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud_script")
+
+[node name="Root" type="Control" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 316.0
+offset_bottom = 202.0
+
+[node name="Background" type="ColorRect" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.035, 0.045, 0.045, 0.86)
+
+[node name="VBox" type="VBoxContainer" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = -8.0
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="Root/VBox"]
+text = "SCRAPBORN"
+horizontal_alignment = 1
+
+[node name="Resources" type="VBoxContainer" parent="Root/VBox"]
+theme_override_constants/separation = 2
+
+[node name="ScrapLabel" type="Label" parent="Root/VBox/Resources"]
+text = "Scrap: 0 / 0"
+
+[node name="EnergyLabel" type="Label" parent="Root/VBox/Resources"]
+text = "Energy: 0 / 0"
+
+[node name="AmmoLabel" type="Label" parent="Root/VBox/Resources"]
+text = "Ammo: 0 / 0"
+
+[node name="PlayerHealthLabel" type="Label" parent="Root/VBox"]
+text = "Player: 0 / 0"
+
+[node name="PlayerHealthBar" type="ProgressBar" parent="Root/VBox"]
+custom_minimum_size = Vector2(0, 14)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="CoreHealthLabel" type="Label" parent="Root/VBox"]
+text = "Core: 0 / 0"
+
+[node name="CoreHealthBar" type="ProgressBar" parent="Root/VBox"]
+custom_minimum_size = Vector2(0, 14)
+max_value = 250.0
+value = 250.0
+show_percentage = false
