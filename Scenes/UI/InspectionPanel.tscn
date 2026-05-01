@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/InspectionPanelController.cs" id="1_inspection"]
+
+[node name="InspectionPanel" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_inspection")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 260.0
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Root/Panel"]
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Root/Panel/VBox"]
+text = "Building"
+horizontal_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="Root/Panel/VBox"]
+text = "HP: 0 / 0"
+autowrap_mode = 3

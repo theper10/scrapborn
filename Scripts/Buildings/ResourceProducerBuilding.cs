@@ -15,6 +15,7 @@ public partial class ResourceProducerBuilding : Building
 
 	protected virtual ResourceType OutputType => outputType;
 	protected int OutputAmount => outputAmount;
+	protected float ProductionInterval => productionInterval;
 
 	public override void _Process(double delta)
 	{
@@ -57,7 +58,14 @@ public partial class ResourceProducerBuilding : Building
 		SetStatus(BuildingStatus.Working);
 	}
 
-	private int GetEffectiveOutputAmount()
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Produces: {OutputType}\n" +
+			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(productionInterval)}";
+	}
+
+	protected int GetEffectiveOutputAmount()
 	{
 		float multiplier = BuildingType switch
 		{
@@ -67,6 +75,11 @@ public partial class ResourceProducerBuilding : Building
 		};
 
 		return Mathf.Max(1, Mathf.RoundToInt(outputAmount * multiplier));
+	}
+
+	protected static string FormatSeconds(float seconds)
+	{
+		return $"{seconds:0.##}s";
 	}
 
 	private void RecordProducedAmount(int amount)

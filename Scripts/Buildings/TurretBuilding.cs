@@ -136,6 +136,15 @@ public partial class TurretBuilding : Building
 		}
 	}
 
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Damage: {GetEffectiveDamage()}\n" +
+			$"Fire interval: {GetEffectiveFireInterval():0.##}s\n" +
+			$"Range: {range:0} px\n" +
+			$"Ammo cost: {ammoCost}";
+	}
+
 	private int GetEffectiveDamage()
 	{
 		float damageMultiplier = UpgradeManager?.TurretDamageMultiplier ?? 1f;

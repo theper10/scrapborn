@@ -66,6 +66,13 @@ public partial class AssemblerBuilding : Building
 		SetStatus(BuildingStatus.Working);
 	}
 
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Converts: {scrapInput} Scrap + {energyInput} Energy -> {ammoOutput} Ammo\n" +
+			$"Interval: {GetEffectiveProductionInterval():0.##}s";
+	}
+
 	private float GetEffectiveProductionInterval()
 	{
 		float speedMultiplier = UpgradeManager?.AssemblerSpeedMultiplier ?? 1f;

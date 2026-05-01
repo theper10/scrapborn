@@ -21,6 +21,14 @@ public partial class DrillBuilding : ResourceProducerBuilding
 		base.TryProduce();
 	}
 
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Produces: {OutputType}\n" +
+			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(ProductionInterval)}\n" +
+			"Requires: near Scrap deposit";
+	}
+
 	private bool IsNearValidScrapDeposit()
 	{
 		Node world = GetParent()?.GetParent();

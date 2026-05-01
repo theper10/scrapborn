@@ -52,4 +52,10 @@ public partial class StorageBuilding : Building
 			{ ResourceType.Ammo, -ammoMaxBonus }
 		});
 	}
+
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Capacity bonus: +{scrapMaxBonus} Scrap, +{energyMaxBonus} Energy, +{ammoMaxBonus} Ammo";
+	}
 }

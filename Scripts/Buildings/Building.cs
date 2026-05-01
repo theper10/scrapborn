@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Building : Node2D
+public partial class Building : Node2D, IInspectable
 {
 	[Signal]
 	public delegate void DestroyedEventHandler(Building building);
@@ -14,16 +14,19 @@ public partial class Building : Node2D
 
 	private Label statusLabel;
 	private CanvasItem statusIndicator;
+	private Line2D selectionHighlight;
 	private ResourceManager resourceManager;
 	private UpgradeManager upgradeManager;
 	private BuildingStatus status = BuildingStatus.Idle;
 
 	public string DisplayName => BuildingDefinitions.Get(BuildingType).DisplayName;
+	public string InspectableName => DisplayName;
 	public BuildingStatus Status => status;
 	public int CurrentHealth { get; private set; }
 	public int MaxHealth => maxHealth;
 	public bool IsDestroyed { get; private set; }
 	public bool NeedsRepair => !IsDestroyed && CurrentHealth < maxHealth;
+	public bool IsSelectable => !IsDestroyed && Visible;
 	public Vector2I GridCell { get; private set; } = new(int.MinValue, int.MinValue);
 	protected ResourceManager ResourceManager => resourceManager;
 	protected UpgradeManager UpgradeManager => upgradeManager;
@@ -35,6 +38,7 @@ public partial class Building : Node2D
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
 		statusLabel = GetNodeOrNull<Label>("StatusLabel");
 		statusIndicator = GetNodeOrNull<CanvasItem>("StatusIndicator");
+		CreateSelectionHighlight();
 		if (maxHealth <= 0)
 		{
 			maxHealth = GetDefaultMaxHealth(BuildingType);
@@ -59,6 +63,7 @@ public partial class Building : Node2D
 
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
 		UpdateHealthVisuals();
+		UpdateStatusVisuals();
 
 		if (CurrentHealth <= 0)
 		{
@@ -76,7 +81,28 @@ public partial class Building : Node2D
 		int previousHealth = CurrentHealth;
 		CurrentHealth = Math.Clamp(CurrentHealth + amount, 0, maxHealth);
 		UpdateHealthVisuals();
+		UpdateStatusVisuals();
 		return CurrentHealth - previousHealth;
+	}
+
+	public void SetSelected(bool selected)
+	{
+		if (selectionHighlight != null)
+		{
+			selectionHighlight.Visible = selected && IsSelectable;
+		}
+	}
+
+	public string GetInspectionText()
+	{
+		string details = GetInspectionDetails();
+		string repairHint = NeedsRepair ? "\nRepair: Hold F nearby to repair" : string.Empty;
+		return
+			$"Type: {BuildingType}\n" +
+			$"HP: {CurrentHealth} / {maxHealth}\n" +
+			$"Status: {GetDisplayStatus()}" +
+			(string.IsNullOrEmpty(details) ? string.Empty : $"\n{details}") +
+			repairHint;
 	}
 
 	protected void SetStatus(BuildingStatus nextStatus)
@@ -86,7 +112,7 @@ public partial class Building : Node2D
 			return;
 		}
 
-		if (status == nextStatus && statusLabel != null && statusLabel.Text == GetStatusText(nextStatus))
+		if (status == nextStatus && statusLabel != null && statusLabel.Text == GetStatusText(nextStatus, BuildingType))
 		{
 			return;
 		}
@@ -99,13 +125,41 @@ public partial class Building : Node2D
 	{
 	}
 
+	protected virtual string GetInspectionDetails()
+	{
+		return string.Empty;
+	}
+
 	private void DestroyBuilding()
 	{
 		IsDestroyed = true;
 		OnDestroyed();
+		SetSelected(false);
 		SetStatus(BuildingStatus.Destroyed);
 		UpdateHealthVisuals();
 		EmitSignal(SignalName.Destroyed, this);
+	}
+
+	private void CreateSelectionHighlight()
+	{
+		selectionHighlight = new Line2D
+		{
+			Name = "SelectionHighlight",
+			ZIndex = 80,
+			Width = 3f,
+			DefaultColor = new Color(1f, 0.92f, 0.25f, 1f),
+			Visible = false,
+			Closed = true,
+			Points = new[]
+			{
+				new Vector2(-31, -31),
+				new Vector2(31, -31),
+				new Vector2(31, 31),
+				new Vector2(-31, 31)
+			}
+		};
+
+		AddChild(selectionHighlight);
 	}
 
 	private void UpdateHealthVisuals()
@@ -130,7 +184,7 @@ public partial class Building : Node2D
 	{
 		if (statusLabel != null)
 		{
-			statusLabel.Text = GetStatusText(status);
+			statusLabel.Text = GetDisplayStatus();
 			statusLabel.Modulate = GetStatusColor(status);
 		}
 
@@ -140,14 +194,35 @@ public partial class Building : Node2D
 		}
 	}
 
-	private static string GetStatusText(BuildingStatus buildingStatus)
+	private string GetDisplayStatus()
 	{
+		if (IsDestroyed)
+		{
+			return "Destroyed";
+		}
+
+		string baseStatus = GetStatusText(status, BuildingType);
+		if (!NeedsRepair)
+		{
+			return baseStatus;
+		}
+
+		return status == BuildingStatus.Idle ? "Damaged" : $"{baseStatus} (Damaged)";
+	}
+
+	private static string GetStatusText(BuildingStatus buildingStatus, BuildingType buildingType)
+	{
+		if (buildingType == BuildingType.Turret && buildingStatus == BuildingStatus.MissingInput)
+		{
+			return "Missing Ammo";
+		}
+
 		return buildingStatus switch
 		{
 			BuildingStatus.Working => "Working",
 			BuildingStatus.MissingInput => "Missing Input",
 			BuildingStatus.OutputFull => "Output Full",
-			BuildingStatus.InvalidPlacement => "Invalid",
+			BuildingStatus.InvalidPlacement => "Invalid Placement",
 			BuildingStatus.Destroyed => "Destroyed",
 			_ => "Idle"
 		};
