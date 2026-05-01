@@ -141,6 +141,8 @@ public partial class BuildingPlacer : Node2D
 		}
 
 		Building building = scene.Instantiate<Building>();
+		building.InitializePlacement(targetCell);
+		building.Destroyed += OnBuildingDestroyed;
 		building.GlobalPosition = CellToWorldPosition(targetCell);
 		buildingsRoot.AddChild(building);
 		placedBuildings[targetCell] = building;
@@ -224,6 +226,23 @@ public partial class BuildingPlacer : Node2D
 			EmitBuildState();
 			UpdatePreview();
 		}
+	}
+
+	private void OnBuildingDestroyed(Building building)
+	{
+		if (building == null)
+		{
+			return;
+		}
+
+		building.Destroyed -= OnBuildingDestroyed;
+		if (placedBuildings.TryGetValue(building.GridCell, out Building placedBuilding) && placedBuilding == building)
+		{
+			placedBuildings.Remove(building.GridCell);
+		}
+
+		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordBuildingDestroyed();
+		UpdatePreview();
 	}
 
 	private void UpdatePreview()

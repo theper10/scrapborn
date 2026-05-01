@@ -4,5 +4,6 @@ public enum BuildingStatus
 	Working,
 	MissingInput,
 	OutputFull,
-	InvalidPlacement
+	InvalidPlacement,
+	Destroyed
 }

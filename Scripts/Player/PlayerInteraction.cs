@@ -8,6 +8,7 @@ public partial class PlayerInteraction : Area2D
 	public delegate void InteractionHintChangedEventHandler(string hintText, bool isVisible);
 
 	private const string InteractAction = "Interact";
+	private const string RepairAction = "Repair";
 
 	[Export]
 	private int gatherAmount = 5;
@@ -15,9 +16,24 @@ public partial class PlayerInteraction : Area2D
 	[Export]
 	private float gatherInterval = 0.2f;
 
+	[Export]
+	private float repairRange = 80f;
+
+	[Export]
+	private int repairScrapCost = 2;
+
+	[Export]
+	private int repairAmount = 10;
+
+	[Export]
+	private float repairInterval = 0.25f;
+
 	private readonly List<ScrapDeposit> nearbyDeposits = new();
 	private ResourceManager resourceManager;
+	private RunManager runManager;
+	private Core core;
 	private double gatherCooldown;
+	private double repairCooldown;
 	private string currentHintText = string.Empty;
 	private bool isHintVisible;
 
@@ -27,8 +43,11 @@ public partial class PlayerInteraction : Area2D
 	public override void _Ready()
 	{
 		EnsureInteractAction();
+		EnsureRepairAction();
 
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
+		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
+		core = GetTree().Root.FindChild("Core", true, false) as Core;
 		if (resourceManager != null)
 		{
 			resourceManager.ResourcesChanged += RefreshHint;
@@ -58,21 +77,72 @@ public partial class PlayerInteraction : Area2D
 			gatherCooldown -= delta;
 		}
 
-		if (!Input.IsActionPressed(InteractAction) || gatherCooldown > 0.0)
+		if (repairCooldown > 0.0)
 		{
-			return;
+			repairCooldown -= delta;
 		}
 
-		if (TryGatherFromClosestDeposit())
+		if (Input.IsActionPressed(RepairAction) && repairCooldown <= 0.0)
 		{
-			gatherCooldown = gatherInterval;
-			return;
+			bool hasRepairTarget = GetClosestRepairTarget() != null;
+			if (TryRepairClosestTarget() || hasRepairTarget)
+			{
+				repairCooldown = repairInterval;
+			}
 		}
 
-		if (GetClosestValidDeposit() != null)
+		if (Input.IsActionPressed(InteractAction) && gatherCooldown <= 0.0)
 		{
-			gatherCooldown = gatherInterval;
+			if (TryGatherFromClosestDeposit())
+			{
+				gatherCooldown = gatherInterval;
+			}
+			else if (GetClosestValidDeposit() != null)
+			{
+				gatherCooldown = gatherInterval;
+			}
 		}
+
+		RefreshHint();
+	}
+
+	private bool TryRepairClosestTarget()
+	{
+		if (resourceManager == null)
+		{
+			return false;
+		}
+
+		Node2D target = GetClosestRepairTarget();
+		if (target == null)
+		{
+			return false;
+		}
+
+		int missingHealth = GetMissingHealth(target);
+		if (missingHealth <= 0)
+		{
+			return false;
+		}
+
+		Dictionary<ResourceType, int> repairCost = new()
+		{
+			{ ResourceType.Scrap, repairScrapCost }
+		};
+
+		if (!resourceManager.CanSpend(repairCost) || !resourceManager.Spend(repairCost))
+		{
+			return false;
+		}
+
+		int repaired = RepairTarget(target, Math.Min(repairAmount, missingHealth));
+		if (repaired <= 0)
+		{
+			return false;
+		}
+
+		runManager?.RecordRepair(repairScrapCost, repaired);
+		return true;
 	}
 
 	private void OnAreaEntered(Area2D area)
@@ -156,8 +226,78 @@ public partial class PlayerInteraction : Area2D
 		return closestDeposit;
 	}
 
+	private Node2D GetClosestRepairTarget()
+	{
+		Node2D closestTarget = null;
+		float closestDistanceSquared = repairRange * repairRange;
+
+		if (core != null && IsInstanceValid(core) && core.NeedsRepair)
+		{
+			float coreDistanceSquared = GlobalPosition.DistanceSquaredTo(core.GlobalPosition);
+			if (coreDistanceSquared <= closestDistanceSquared)
+			{
+				closestDistanceSquared = coreDistanceSquared;
+				closestTarget = core;
+			}
+		}
+
+		foreach (Node node in GetTree().GetNodesInGroup("Buildings"))
+		{
+			if (node is not Building building ||
+			    !IsInstanceValid(building) ||
+			    !building.NeedsRepair)
+			{
+				continue;
+			}
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(building.GlobalPosition);
+			if (distanceSquared <= closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestTarget = building;
+			}
+		}
+
+		return closestTarget;
+	}
+
+	private static int RepairTarget(Node2D target, int amount)
+	{
+		return target switch
+		{
+			Core coreTarget => coreTarget.Repair(amount),
+			Building buildingTarget => buildingTarget.Repair(amount),
+			_ => 0
+		};
+	}
+
+	private static int GetMissingHealth(Node2D target)
+	{
+		return target switch
+		{
+			Core coreTarget => coreTarget.MaxHealth - coreTarget.CurrentHealth,
+			Building buildingTarget => buildingTarget.MaxHealth - buildingTarget.CurrentHealth,
+			_ => 0
+		};
+	}
+
 	private void RefreshHint()
 	{
+		Node2D repairTarget = GetClosestRepairTarget();
+		if (repairTarget != null)
+		{
+			if (Input.IsActionPressed(RepairAction) &&
+			    resourceManager != null &&
+			    resourceManager.GetAmount(ResourceType.Scrap) < repairScrapCost)
+			{
+				SetHint("Need Scrap to repair", true);
+				return;
+			}
+
+			SetHint("Hold F to repair", true);
+			return;
+		}
+
 		ScrapDeposit closestDeposit = GetClosestValidDeposit();
 		if (closestDeposit == null)
 		{
@@ -198,6 +338,22 @@ public partial class PlayerInteraction : Area2D
 			InputMap.ActionAddEvent(InteractAction, new InputEventKey
 			{
 				PhysicalKeycode = Key.E
+			});
+		}
+	}
+
+	private static void EnsureRepairAction()
+	{
+		if (!InputMap.HasAction(RepairAction))
+		{
+			InputMap.AddAction(RepairAction);
+		}
+
+		if (!ActionHasKey(RepairAction, Key.F))
+		{
+			InputMap.ActionAddEvent(RepairAction, new InputEventKey
+			{
+				PhysicalKeycode = Key.F
 			});
 		}
 	}

@@ -18,6 +18,11 @@ public partial class ResourceProducerBuilding : Building
 
 	public override void _Process(double delta)
 	{
+		if (IsDestroyed)
+		{
+			return;
+		}
+
 		productionTimer += delta;
 		if (productionTimer < productionInterval)
 		{

@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://Scripts/Buildings/BuildingPlacer.cs" id="5_placer"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/UpgradeScreen.tscn" id="6_upgrade"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/RunSummaryPanel.tscn" id="7_summary"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/PauseMenu.tscn" id="8_pause"]
 
 [node name="Main" type="Node2D" unique_id=1293990018]
 script = ExtResource("1_main")
@@ -24,3 +25,5 @@ script = ExtResource("5_placer")
 [node name="RunSummaryPanel" parent="." instance=ExtResource("7_summary")]
 
 [node name="UpgradeScreen" parent="." instance=ExtResource("6_upgrade")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("8_pause")]

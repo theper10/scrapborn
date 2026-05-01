@@ -18,8 +18,10 @@ public partial class PlayerController : CharacterBody2D
 	private int maxHealth = 100;
 
 	private UpgradeManager upgradeManager;
+	private RunManager runManager;
 	private float baseMoveSpeed;
 	private int baseMaxHealth;
+	private double damageFlashTimer;
 
 	public int CurrentHealth { get; private set; }
 	public int MaxHealth => maxHealth;
@@ -30,6 +32,7 @@ public partial class PlayerController : CharacterBody2D
 		baseMoveSpeed = moveSpeed;
 		baseMaxHealth = maxHealth;
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
 		if (upgradeManager != null)
 		{
 			upgradeManager.UpgradeApplied += OnUpgradeApplied;
@@ -50,9 +53,21 @@ public partial class PlayerController : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (CurrentHealth <= 0 || runManager?.IsRunOver == true)
+		{
+			Velocity = Vector2.Zero;
+			MoveAndSlide();
+			return;
+		}
+
 		Vector2 inputDirection = Input.GetVector(MoveLeftAction, MoveRightAction, MoveUpAction, MoveDownAction);
 		Velocity = inputDirection * GetEffectiveMoveSpeed();
 		MoveAndSlide();
+	}
+
+	public override void _Process(double delta)
+	{
+		UpdateDamageFlash(delta);
 	}
 
 	public void TakeDamage(int amount)
@@ -63,7 +78,14 @@ public partial class PlayerController : CharacterBody2D
 		}
 
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		damageFlashTimer = 0.1;
+		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
+
+		if (CurrentHealth <= 0)
+		{
+			runManager?.EnterDefeat("Player destroyed.");
+		}
 	}
 
 	private float GetEffectiveMoveSpeed()
@@ -82,6 +104,20 @@ public partial class PlayerController : CharacterBody2D
 		maxHealth = baseMaxHealth + (upgradeManager?.PlayerMaxHealthBonus ?? 0);
 		CurrentHealth = Math.Clamp(CurrentHealth + maxHealth - previousMaxHealth, 0, maxHealth);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
+	}
+
+	private void UpdateDamageFlash(double delta)
+	{
+		if (damageFlashTimer <= 0.0)
+		{
+			return;
+		}
+
+		damageFlashTimer -= delta;
+		if (damageFlashTimer <= 0.0)
+		{
+			Modulate = Colors.White;
+		}
 	}
 
 	private static void EnsureMovementActions()

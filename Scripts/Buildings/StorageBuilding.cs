@@ -36,4 +36,20 @@ public partial class StorageBuilding : Building
 		});
 		SetStatus(BuildingStatus.Idle);
 	}
+
+	protected override void OnDestroyed()
+	{
+		if (!hasAppliedBonus || ResourceManager == null)
+		{
+			return;
+		}
+
+		hasAppliedBonus = false;
+		ResourceManager.AddMaxResources(new Dictionary<ResourceType, int>
+		{
+			{ ResourceType.Scrap, -scrapMaxBonus },
+			{ ResourceType.Energy, -energyMaxBonus },
+			{ ResourceType.Ammo, -ammoMaxBonus }
+		});
+	}
 }

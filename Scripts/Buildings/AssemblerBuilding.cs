@@ -19,6 +19,11 @@ public partial class AssemblerBuilding : Building
 
 	public override void _Process(double delta)
 	{
+		if (IsDestroyed)
+		{
+			return;
+		}
+
 		productionTimer += delta;
 		if (productionTimer < GetEffectiveProductionInterval())
 		{

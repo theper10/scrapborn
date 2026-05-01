@@ -8,6 +8,9 @@ public sealed class RunStats
 	public int AmmoProduced { get; private set; }
 	public int UpgradesChosen { get; private set; }
 	public int NightsSurvived { get; private set; }
+	public int BuildingsDestroyed { get; private set; }
+	public int ScrapSpentOnRepairs { get; private set; }
+	public int HealthRepaired { get; private set; }
 
 	public void Reset()
 	{
@@ -19,6 +22,9 @@ public sealed class RunStats
 		AmmoProduced = 0;
 		UpgradesChosen = 0;
 		NightsSurvived = 0;
+		BuildingsDestroyed = 0;
+		ScrapSpentOnRepairs = 0;
+		HealthRepaired = 0;
 	}
 
 	public void RecordEnemyKilled()
@@ -61,8 +67,19 @@ public sealed class RunStats
 		NightsSurvived++;
 	}
 
+	public void RecordBuildingDestroyed()
+	{
+		BuildingsDestroyed++;
+	}
+
+	public void RecordRepair(int scrapSpent, int healthRepaired)
+	{
+		ScrapSpentOnRepairs += scrapSpent;
+		HealthRepaired += healthRepaired;
+	}
+
 	public string ToDebugString()
 	{
-		return $"Stats: Kills {EnemiesKilled} | Buildings {BuildingsPlaced} | Manual Scrap {ScrapGatheredManually} | Drill Scrap {ScrapProducedByDrills} | Energy {EnergyProduced} | Ammo {AmmoProduced} | Upgrades {UpgradesChosen} | Nights {NightsSurvived}";
+		return $"Stats: Kills {EnemiesKilled} | Buildings {BuildingsPlaced} | Lost {BuildingsDestroyed} | Manual Scrap {ScrapGatheredManually} | Drill Scrap {ScrapProducedByDrills} | Energy {EnergyProduced} | Ammo {AmmoProduced} | Repairs {HealthRepaired} HP/{ScrapSpentOnRepairs} Scrap | Upgrades {UpgradesChosen} | Nights {NightsSurvived}";
 	}
 }

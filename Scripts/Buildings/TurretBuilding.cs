@@ -31,6 +31,16 @@ public partial class TurretBuilding : Building
 
 	public override void _Process(double delta)
 	{
+		if (IsDestroyed)
+		{
+			if (shotLine != null)
+			{
+				shotLine.Visible = false;
+			}
+
+			return;
+		}
+
 		UpdateShotFlash(delta);
 
 		if (fireTimer > 0.0)

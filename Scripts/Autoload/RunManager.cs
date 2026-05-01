@@ -34,6 +34,7 @@ public partial class RunManager : Node
 	private EnemyType[] currentWave = Array.Empty<EnemyType>();
 	private int spawnedThisNight;
 	private int activeEnemies;
+	private string defeatReason = "Core destroyed.";
 	private readonly RunStats stats = new();
 
 	[Export]
@@ -76,6 +77,11 @@ public partial class RunManager : Node
 				RestartRun();
 			}
 
+			return;
+		}
+
+		if (GetTree().Paused && currentPhase is RunPhase.Day or RunPhase.Night)
+		{
 			return;
 		}
 
@@ -239,7 +245,7 @@ public partial class RunManager : Node
 	{
 		if (currentHealth <= 0 && !IsRunOverInternal())
 		{
-			StartDefeat();
+			StartDefeat("Core destroyed.");
 		}
 	}
 
@@ -262,8 +268,19 @@ public partial class RunManager : Node
 		EmitRunState();
 	}
 
-	private void StartDefeat()
+	public void EnterDefeat(string reason)
 	{
+		if (IsRunOverInternal())
+		{
+			return;
+		}
+
+		StartDefeat(reason);
+	}
+
+	private void StartDefeat(string reason)
+	{
+		defeatReason = string.IsNullOrWhiteSpace(reason) ? "Run failed." : reason;
 		currentPhase = RunPhase.Defeat;
 		ClearEnemies();
 		EmitRunState();
@@ -283,7 +300,7 @@ public partial class RunManager : Node
 		activeEnemies = 0;
 	}
 
-	private void RestartRun()
+	public void RestartRun()
 	{
 		GetTree().Paused = false;
 		GetNodeOrNull<ResourceManager>("/root/ResourceManager")?.ResetResources();
@@ -303,6 +320,7 @@ public partial class RunManager : Node
 		currentWave = Array.Empty<EnemyType>();
 		spawnedThisNight = 0;
 		activeEnemies = 0;
+		defeatReason = "Core destroyed.";
 		stats.Reset();
 		EmitRunState();
 	}
@@ -330,6 +348,16 @@ public partial class RunManager : Node
 	public void RecordAmmoProduced(int amount)
 	{
 		stats.RecordAmmoProduced(amount);
+	}
+
+	public void RecordBuildingDestroyed()
+	{
+		stats.RecordBuildingDestroyed();
+	}
+
+	public void RecordRepair(int scrapSpent, int healthRepaired)
+	{
+		stats.RecordRepair(scrapSpent, healthRepaired);
 	}
 
 	private bool IsRunOverInternal()
@@ -368,7 +396,7 @@ public partial class RunManager : Node
 			RunPhase.Night => $"Enemies: {activeEnemies} | Spawned: {spawnedThisNight}/{currentWave.Length}",
 			RunPhase.UpgradeSelection => "Choose one upgrade",
 			RunPhase.Victory => "You survived 5 nights.",
-			RunPhase.Defeat => "Core destroyed.",
+			RunPhase.Defeat => defeatReason,
 			_ => string.Empty
 		};
 	}
@@ -383,7 +411,7 @@ public partial class RunManager : Node
 		return currentPhase switch
 		{
 			RunPhase.Victory => "Victory! You survived 5 nights. Press R to restart.",
-			RunPhase.Defeat => "Defeat! Core destroyed. Press R to restart.",
+			RunPhase.Defeat => $"Defeat! {defeatReason} Press R to restart.",
 			_ => string.Empty
 		};
 	}

@@ -22,6 +22,7 @@ public partial class Enemy : CharacterBody2D
 	private float attackRange = 34f;
 
 	private Core core;
+	private PlayerController player;
 	private ProgressBar healthBar;
 	private double attackTimer;
 	private double hitFlashTimer;
@@ -35,6 +36,7 @@ public partial class Enemy : CharacterBody2D
 		AddToGroup("Enemies");
 		currentHealth = maxHealth;
 		core = GetNodeOrNull<Core>("../Core") ?? GetTree().Root.FindChild("Core", true, false) as Core;
+		player = GetTree().Root.FindChild("Player", true, false) as PlayerController;
 		healthBar = GetNodeOrNull<ProgressBar>("HealthBar");
 		UpdateHealthBar();
 	}
@@ -43,17 +45,23 @@ public partial class Enemy : CharacterBody2D
 	{
 		UpdateHitFlash(delta);
 
-		if (core == null || core.CurrentHealth <= 0 || currentHealth <= 0)
+		if (currentHealth <= 0)
 		{
 			Velocity = Vector2.Zero;
 			return;
 		}
 
-		float distanceToCore = GlobalPosition.DistanceTo(core.GlobalPosition);
-		if (distanceToCore <= attackRange)
+		Node2D attackTarget = FindAttackTarget();
+		if (attackTarget != null)
 		{
 			Velocity = Vector2.Zero;
-			AttackCore(delta);
+			AttackTarget(attackTarget, delta);
+			return;
+		}
+
+		if (core == null || core.CurrentHealth <= 0)
+		{
+			Velocity = Vector2.Zero;
 			return;
 		}
 
@@ -81,7 +89,61 @@ public partial class Enemy : CharacterBody2D
 		}
 	}
 
-	private void AttackCore(double delta)
+	private Node2D FindAttackTarget()
+	{
+		if (IsPlayerAttackable())
+		{
+			return player;
+		}
+
+		Building building = FindClosestAttackableBuilding();
+		if (building != null)
+		{
+			return building;
+		}
+
+		if (core != null && core.CurrentHealth > 0 && GlobalPosition.DistanceTo(core.GlobalPosition) <= attackRange)
+		{
+			return core;
+		}
+
+		return null;
+	}
+
+	private bool IsPlayerAttackable()
+	{
+		return player != null &&
+		       IsInstanceValid(player) &&
+		       player.CurrentHealth > 0 &&
+		       GlobalPosition.DistanceTo(player.GlobalPosition) <= attackRange;
+	}
+
+	private Building FindClosestAttackableBuilding()
+	{
+		Building closestBuilding = null;
+		float closestDistanceSquared = attackRange * attackRange;
+
+		foreach (Node node in GetTree().GetNodesInGroup("Buildings"))
+		{
+			if (node is not Building building ||
+			    !IsInstanceValid(building) ||
+			    building.IsDestroyed)
+			{
+				continue;
+			}
+
+			float distanceSquared = GlobalPosition.DistanceSquaredTo(building.GlobalPosition);
+			if (distanceSquared <= closestDistanceSquared)
+			{
+				closestDistanceSquared = distanceSquared;
+				closestBuilding = building;
+			}
+		}
+
+		return closestBuilding;
+	}
+
+	private void AttackTarget(Node2D target, double delta)
 	{
 		attackTimer -= delta;
 		if (attackTimer > 0.0)
@@ -90,7 +152,18 @@ public partial class Enemy : CharacterBody2D
 		}
 
 		attackTimer = attackInterval;
-		core.TakeDamage(contactDamage);
+		if (target is PlayerController playerTarget)
+		{
+			playerTarget.TakeDamage(contactDamage);
+		}
+		else if (target is Building buildingTarget)
+		{
+			buildingTarget.TakeDamage(contactDamage);
+		}
+		else if (target is Core coreTarget)
+		{
+			coreTarget.TakeDamage(contactDamage);
+		}
 	}
 
 	private void UpdateHitFlash(double delta)
