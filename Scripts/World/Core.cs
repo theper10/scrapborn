@@ -92,6 +92,11 @@ public partial class Core : Node2D, IInspectable
 			repairHint;
 	}
 
+	public string GetHoverText()
+	{
+		return $"Core\nHP: {CurrentHealth} / {maxHealth}\nStatus: {GetCoreStatus()}";
+	}
+
 	private void OnUpgradeApplied(int upgradeType)
 	{
 		if ((UpgradeType)upgradeType != UpgradeType.CoreMaxHealth)

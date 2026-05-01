@@ -5,6 +5,9 @@ public partial class SelectionController : Node2D
 	[Signal]
 	public delegate void SelectionChangedEventHandler(Node selectedNode);
 
+	[Signal]
+	public delegate void HoverChangedEventHandler(Node hoveredNode);
+
 	[Export]
 	private float buildingSelectionRadius = 36f;
 
@@ -15,9 +18,13 @@ public partial class SelectionController : Node2D
 	private RunManager runManager;
 	private IInspectable selectedInspectable;
 	private Node selectedNode;
+	private IInspectable hoveredInspectable;
+	private Node hoveredNode;
 
 	public IInspectable SelectedInspectable => selectedInspectable;
 	public Node SelectedNode => selectedNode;
+	public IInspectable HoveredInspectable => hoveredInspectable;
+	public Node HoveredNode => hoveredNode;
 
 	public override void _Ready()
 	{
@@ -45,6 +52,8 @@ public partial class SelectionController : Node2D
 
 	public override void _Process(double delta)
 	{
+		UpdateHover();
+
 		if (selectedNode != null &&
 		    (!IsInstanceValid(selectedNode) ||
 		     selectedInspectable == null ||
@@ -72,6 +81,22 @@ public partial class SelectionController : Node2D
 		}
 
 		return runManager == null || runManager.CurrentPhase is RunPhase.Day or RunPhase.Night;
+	}
+
+	private bool CanHoverNow()
+	{
+		return CanSelectNow();
+	}
+
+	private void UpdateHover()
+	{
+		if (!CanHoverNow())
+		{
+			SetHoveredNode(null);
+			return;
+		}
+
+		SetHoveredNode(FindSelectableAt(GetGlobalMousePosition()));
 	}
 
 	private Node FindSelectableAt(Vector2 worldPosition)
@@ -130,5 +155,17 @@ public partial class SelectionController : Node2D
 		selectedInspectable = node as IInspectable;
 		selectedInspectable?.SetSelected(true);
 		EmitSignal(SignalName.SelectionChanged, selectedNode);
+	}
+
+	private void SetHoveredNode(Node node)
+	{
+		if (hoveredNode == node)
+		{
+			return;
+		}
+
+		hoveredNode = node;
+		hoveredInspectable = node as IInspectable;
+		EmitSignal(SignalName.HoverChanged, hoveredNode);
 	}
 }

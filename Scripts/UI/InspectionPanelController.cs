@@ -11,8 +11,8 @@ public partial class InspectionPanelController : CanvasLayer
 	public override void _Ready()
 	{
 		root = GetNode<Control>("Root");
-		titleLabel = GetNode<Label>("Root/Panel/VBox/TitleLabel");
-		bodyLabel = GetNode<Label>("Root/Panel/VBox/BodyLabel");
+		titleLabel = GetNode<Label>("Root/Panel/Margin/VBox/TitleLabel");
+		bodyLabel = GetNode<Label>("Root/Panel/Margin/VBox/BodyLabel");
 		selectionController = GetParent()?.GetNodeOrNull<SelectionController>("SelectionController");
 		if (selectionController != null)
 		{

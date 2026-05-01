@@ -20,7 +20,7 @@ public partial class BuildingPlacer : Node2D
 	private const string CancelBuildModeAction = "CancelBuildMode";
 
 	private readonly Dictionary<Vector2I, Building> placedBuildings = new();
-	private readonly HashSet<Vector2I> blockedCells = new();
+	private readonly Dictionary<Vector2I, string> blockedCellReasons = new();
 	private readonly Dictionary<BuildingType, PackedScene> buildingScenes = new();
 
 	private ResourceManager resourceManager;
@@ -30,19 +30,29 @@ public partial class BuildingPlacer : Node2D
 	private BuildingType selectedBuildingType = BuildingType.Drill;
 	private bool isBuildModeActive;
 	private string statusText = string.Empty;
+	private string placementTooltipText = string.Empty;
 
 	[Export]
 	private int gridSize = 64;
 
 	public bool IsBuildModeActive => isBuildModeActive;
+	public BuildingType SelectedBuildingType => selectedBuildingType;
 	public string SelectedBuildingName => BuildingDefinitions.Get(selectedBuildingType).DisplayName;
 	public string SelectedBuildingCost => GetSelectedBuildingCostText();
+	public string SelectedBuildingPurpose => BuildingDefinitions.Get(selectedBuildingType).Purpose;
 	public string StatusText => statusText;
+	public string BuildMenuText => GetBuildMenuText();
+	public string PlacementTooltipText => placementTooltipText;
 
 	public override void _Ready()
 	{
 		EnsureBuildInputActions();
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
+		if (resourceManager != null)
+		{
+			resourceManager.ResourcesChanged += OnResourcesChanged;
+		}
+
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
 		if (upgradeManager != null)
 		{
@@ -65,6 +75,11 @@ public partial class BuildingPlacer : Node2D
 
 	public override void _ExitTree()
 	{
+		if (resourceManager != null)
+		{
+			resourceManager.ResourcesChanged -= OnResourcesChanged;
+		}
+
 		if (upgradeManager != null)
 		{
 			upgradeManager.UpgradeApplied -= OnUpgradeApplied;
@@ -154,13 +169,19 @@ public partial class BuildingPlacer : Node2D
 	{
 		if (buildingsRoot == null)
 		{
-			placementError = "Invalid placement";
+			placementError = "Invalid location";
 			return false;
 		}
 
-		if (placedBuildings.ContainsKey(cell) || blockedCells.Contains(cell))
+		if (placedBuildings.ContainsKey(cell))
 		{
 			placementError = "Cell occupied";
+			return false;
+		}
+
+		if (blockedCellReasons.TryGetValue(cell, out string blockedReason))
+		{
+			placementError = blockedReason;
 			return false;
 		}
 
@@ -209,8 +230,22 @@ public partial class BuildingPlacer : Node2D
 
 	private Dictionary<ResourceType, int> GetSelectedBuildingCost()
 	{
-		Dictionary<ResourceType, int> baseCost = BuildingDefinitions.Get(selectedBuildingType).Cost;
-		return upgradeManager?.GetDiscountedCost(baseCost) ?? new Dictionary<ResourceType, int>(baseCost);
+		return GetBuildingCost(selectedBuildingType);
+	}
+
+	public bool CanAfford(BuildingType buildingType)
+	{
+		return resourceManager != null && resourceManager.CanSpend(GetBuildingCost(buildingType));
+	}
+
+	public string GetBuildingCostText(BuildingType buildingType)
+	{
+		return BuildingDefinitions.FormatCost(GetBuildingCost(buildingType));
+	}
+
+	public string GetBuildingCompactCostText(BuildingType buildingType)
+	{
+		return BuildingDefinitions.FormatCompactCost(GetBuildingCost(buildingType));
 	}
 
 	private string GetSelectedBuildingCostText()
@@ -226,6 +261,12 @@ public partial class BuildingPlacer : Node2D
 			EmitBuildState();
 			UpdatePreview();
 		}
+	}
+
+	private void OnResourcesChanged()
+	{
+		EmitBuildState();
+		UpdatePreview();
 	}
 
 	private void OnBuildingDestroyed(Building building)
@@ -255,15 +296,17 @@ public partial class BuildingPlacer : Node2D
 		preview.Visible = isBuildModeActive;
 		if (!isBuildModeActive)
 		{
+			SetPlacementTooltip(string.Empty);
 			return;
 		}
 
 		Vector2I targetCell = GetMouseCell();
 		preview.GlobalPosition = CellToWorldPosition(targetCell);
-		bool isValid = CanPlaceAt(targetCell, out _);
+		bool isValid = CanPlaceAt(targetCell, out string placementError);
 		preview.Color = isValid
 			? new Color(0.25f, 0.95f, 0.45f, 0.45f)
 			: new Color(0.95f, 0.2f, 0.18f, 0.45f);
+		SetPlacementTooltip(BuildPlacementTooltip(targetCell, isValid, placementError));
 	}
 
 	private void CreatePreview()
@@ -303,11 +346,106 @@ public partial class BuildingPlacer : Node2D
 
 		foreach (Node child in testWorld.GetChildren())
 		{
-			if (child is Core or ScrapDeposit)
+			if (child is Core core)
 			{
-				blockedCells.Add(WorldPositionToCell(((Node2D)child).GlobalPosition));
+				blockedCellReasons[WorldPositionToCell(core.GlobalPosition)] = "Blocked by Core";
+			}
+			else if (child is ScrapDeposit deposit)
+			{
+				blockedCellReasons[WorldPositionToCell(deposit.GlobalPosition)] = "Blocked by ScrapDeposit";
 			}
 		}
+	}
+
+	private string GetBuildMenuText()
+	{
+		List<string> lines = new()
+		{
+			"Build Menu"
+		};
+
+		foreach (BuildingType buildingType in System.Enum.GetValues<BuildingType>())
+		{
+			BuildingDefinition definition = BuildingDefinitions.Get(buildingType);
+			Dictionary<ResourceType, int> cost = GetBuildingCost(buildingType);
+			string affordableText = resourceManager != null && resourceManager.CanSpend(cost) ? "CAN" : "NEED";
+			int hotkey = (int)buildingType + 1;
+			lines.Add($"{hotkey} {definition.DisplayName} | {BuildingDefinitions.FormatCost(cost)} | {definition.Purpose} [{affordableText}]");
+		}
+
+		return string.Join("\n", lines);
+	}
+
+	private string BuildPlacementTooltip(Vector2I targetCell, bool isValid, string placementError)
+	{
+		BuildingDefinition definition = BuildingDefinitions.Get(selectedBuildingType);
+		List<string> lines = new()
+		{
+			$"{definition.DisplayName}",
+			$"Cost: {GetSelectedBuildingCostText()}",
+			definition.Purpose
+		};
+
+		lines.Add(isValid ? "Placement: Valid" : $"Placement: Invalid - {placementError}");
+
+		string warning = GetPlacementWarning(targetCell);
+		if (!string.IsNullOrEmpty(warning))
+		{
+			lines.Add($"Warning: {warning}");
+		}
+
+		return string.Join("\n", lines);
+	}
+
+	private string GetPlacementWarning(Vector2I targetCell)
+	{
+		if (selectedBuildingType == BuildingType.Drill && !IsCellNearScrapDeposit(targetCell))
+		{
+			return "Drill should be near ScrapDeposit";
+		}
+
+		return string.Empty;
+	}
+
+	private bool IsCellNearScrapDeposit(Vector2I cell)
+	{
+		Node testWorld = GetNodeOrNull("../TestWorld");
+		if (testWorld == null)
+		{
+			return false;
+		}
+
+		const float depositWorkRange = 96f;
+		float rangeSquared = depositWorkRange * depositWorkRange;
+		Vector2 worldPosition = CellToWorldPosition(cell);
+		foreach (Node child in testWorld.GetChildren())
+		{
+			if (child is ScrapDeposit deposit &&
+			    !deposit.IsEmpty &&
+			    worldPosition.DistanceSquaredTo(deposit.GlobalPosition) <= rangeSquared)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void SetPlacementTooltip(string tooltipText)
+	{
+		if (placementTooltipText == tooltipText)
+		{
+			return;
+		}
+
+		placementTooltipText = tooltipText;
+		EmitBuildState();
+	}
+
+	private Dictionary<ResourceType, int> GetBuildingCost(BuildingType buildingType)
+	{
+		Dictionary<ResourceType, int> baseCost = BuildingDefinitions.Get(buildingType).Cost;
+		return upgradeManager?.GetDiscountedCost(baseCost) ?? new Dictionary<ResourceType, int>(baseCost);
 	}
 
 	private Vector2I GetMouseCell()

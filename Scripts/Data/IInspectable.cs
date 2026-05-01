@@ -4,5 +4,6 @@ public interface IInspectable
 	bool IsSelectable { get; }
 
 	void SetSelected(bool selected);
+	string GetHoverText();
 	string GetInspectionText();
 }

@@ -7,18 +7,21 @@ public sealed class BuildingDefinition
 		BuildingType type,
 		string displayName,
 		string scenePath,
-		Dictionary<ResourceType, int> cost)
+		Dictionary<ResourceType, int> cost,
+		string purpose)
 	{
 		Type = type;
 		DisplayName = displayName;
 		ScenePath = scenePath;
 		Cost = cost;
+		Purpose = purpose;
 	}
 
 	public BuildingType Type { get; }
 	public string DisplayName { get; }
 	public string ScenePath { get; }
 	public Dictionary<ResourceType, int> Cost { get; }
+	public string Purpose { get; }
 }
 
 public static class BuildingDefinitions
@@ -31,7 +34,8 @@ public static class BuildingDefinitions
 				BuildingType.Drill,
 				"Drill",
 				"res://Scenes/Buildings/Drill.tscn",
-				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 20 } })
+				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 20 } },
+				"Produces Scrap near deposits")
 		},
 		{
 			BuildingType.Generator,
@@ -39,7 +43,8 @@ public static class BuildingDefinitions
 				BuildingType.Generator,
 				"Generator",
 				"res://Scenes/Buildings/Generator.tscn",
-				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 25 } })
+				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 25 } },
+				"Produces Energy")
 		},
 		{
 			BuildingType.Assembler,
@@ -51,7 +56,8 @@ public static class BuildingDefinitions
 				{
 					{ ResourceType.Scrap, 40 },
 					{ ResourceType.Energy, 10 }
-				})
+				},
+				"Makes Ammo")
 		},
 		{
 			BuildingType.Turret,
@@ -63,7 +69,8 @@ public static class BuildingDefinitions
 				{
 					{ ResourceType.Scrap, 30 },
 					{ ResourceType.Energy, 5 }
-				})
+				},
+				"Shoots enemies")
 		},
 		{
 			BuildingType.Storage,
@@ -71,7 +78,8 @@ public static class BuildingDefinitions
 				BuildingType.Storage,
 				"Storage",
 				"res://Scenes/Buildings/Storage.tscn",
-				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 20 } })
+				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 20 } },
+				"Increases capacity")
 		}
 	};
 
@@ -100,8 +108,34 @@ public static class BuildingDefinitions
 		return parts.Count > 0 ? string.Join(", ", parts) : "Free";
 	}
 
+	public static string FormatCompactCost(Dictionary<ResourceType, int> cost)
+	{
+		List<string> parts = new();
+
+		foreach (ResourceType resourceType in System.Enum.GetValues<ResourceType>())
+		{
+			if (cost.TryGetValue(resourceType, out int amount) && amount > 0)
+			{
+				parts.Add($"{amount}{GetResourceAbbreviation(resourceType)}");
+			}
+		}
+
+		return parts.Count > 0 ? string.Join(" ", parts) : "Free";
+	}
+
 	public static PackedScene LoadScene(BuildingType type)
 	{
 		return ResourceLoader.Load<PackedScene>(Get(type).ScenePath);
+	}
+
+	private static string GetResourceAbbreviation(ResourceType type)
+	{
+		return type switch
+		{
+			ResourceType.Scrap => "S",
+			ResourceType.Energy => "E",
+			ResourceType.Ammo => "A",
+			_ => type.ToString()
+		};
 	}
 }

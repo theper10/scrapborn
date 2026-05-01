@@ -105,6 +105,11 @@ public partial class Building : Node2D, IInspectable
 			repairHint;
 	}
 
+	public string GetHoverText()
+	{
+		return $"{InspectableName}\nHP: {CurrentHealth} / {maxHealth}\nStatus: {GetDisplayStatus()}";
+	}
+
 	protected void SetStatus(BuildingStatus nextStatus)
 	{
 		if (IsDestroyed && nextStatus != BuildingStatus.Destroyed)
@@ -212,6 +217,11 @@ public partial class Building : Node2D, IInspectable
 
 	private static string GetStatusText(BuildingStatus buildingStatus, BuildingType buildingType)
 	{
+		if (buildingType == BuildingType.Drill && buildingStatus == BuildingStatus.InvalidPlacement)
+		{
+			return "Needs Scrap Deposit";
+		}
+
 		if (buildingType == BuildingType.Turret && buildingStatus == BuildingStatus.MissingInput)
 		{
 			return "Missing Ammo";
@@ -222,7 +232,7 @@ public partial class Building : Node2D, IInspectable
 			BuildingStatus.Working => "Working",
 			BuildingStatus.MissingInput => "Missing Input",
 			BuildingStatus.OutputFull => "Output Full",
-			BuildingStatus.InvalidPlacement => "Invalid Placement",
+			BuildingStatus.InvalidPlacement => "Invalid",
 			BuildingStatus.Destroyed => "Destroyed",
 			_ => "Idle"
 		};

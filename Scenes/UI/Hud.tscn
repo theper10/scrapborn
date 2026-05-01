@@ -1,82 +1,387 @@
-[gd_scene format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scripts/UI/HudController.cs" id="1_hud_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.035, 0.045, 0.045, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.22, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot"]
+bg_color = Color(0.055, 0.065, 0.065, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.22, 0.26, 0.25, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud_script")
 
 [node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TopLeft" type="Control" parent="Root"]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 360.0
-offset_bottom = 288.0
+offset_right = 300.0
+offset_bottom = 188.0
 
-[node name="Background" type="ColorRect" parent="Root"]
+[node name="ResourcePanel" type="PanelContainer" parent="Root/TopLeft"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.035, 0.045, 0.045, 0.86)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Root"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 8.0
-offset_right = -10.0
-offset_bottom = -8.0
-theme_override_constants/separation = 5
+[node name="Margin" type="MarginContainer" parent="Root/TopLeft/ResourcePanel"]
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
-[node name="Title" type="Label" parent="Root/VBox"]
-text = "SCRAPBORN"
-horizontal_alignment = 1
+[node name="VBox" type="VBoxContainer" parent="Root/TopLeft/ResourcePanel/Margin"]
+theme_override_constants/separation = 4
 
-[node name="Resources" type="VBoxContainer" parent="Root/VBox"]
-theme_override_constants/separation = 2
+[node name="ScrapLabel" type="Label" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+text = "Scrap 0 / 0"
 
-[node name="ScrapLabel" type="Label" parent="Root/VBox/Resources"]
-text = "Scrap: 0 / 0"
+[node name="EnergyLabel" type="Label" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+text = "Energy 0 / 0"
 
-[node name="EnergyLabel" type="Label" parent="Root/VBox/Resources"]
-text = "Energy: 0 / 0"
+[node name="AmmoLabel" type="Label" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+text = "Ammo 0 / 0"
 
-[node name="AmmoLabel" type="Label" parent="Root/VBox/Resources"]
-text = "Ammo: 0 / 0"
+[node name="PlayerHealthLabel" type="Label" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+text = "Player HP 0 / 0"
 
-[node name="RunStatusLabel" type="Label" parent="Root/VBox"]
-text = "Day 1 - 90s remaining"
-
-[node name="RunStatsLabel" type="Label" parent="Root/VBox"]
-text = "Stats: Kills 0 | Buildings 0 | Manual Scrap 0 | Drill Scrap 0 | Energy 0 | Ammo 0 | Upgrades 0 | Nights 0"
-autowrap_mode = 3
-
-[node name="InteractionHintLabel" type="Label" parent="Root/VBox"]
-visible = false
-text = "Press E to gather Scrap"
-
-[node name="BuildStatusLabel" type="Label" parent="Root/VBox"]
-text = "Build: Off"
-
-[node name="GlobalMessageLabel" type="Label" parent="Root/VBox"]
-visible = false
-text = "Core destroyed"
-horizontal_alignment = 1
-
-[node name="PlayerHealthLabel" type="Label" parent="Root/VBox"]
-text = "Player: 0 / 0"
-
-[node name="PlayerHealthBar" type="ProgressBar" parent="Root/VBox"]
-custom_minimum_size = Vector2(0, 14)
+[node name="PlayerHealthBar" type="ProgressBar" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 10)
 max_value = 100.0
 value = 100.0
 show_percentage = false
 
-[node name="CoreHealthLabel" type="Label" parent="Root/VBox"]
-text = "Core: 0 / 0"
+[node name="CoreHealthLabel" type="Label" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+text = "Core HP 0 / 0"
 
-[node name="CoreHealthBar" type="ProgressBar" parent="Root/VBox"]
-custom_minimum_size = Vector2(0, 14)
+[node name="CoreHealthBar" type="ProgressBar" parent="Root/TopLeft/ResourcePanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 10)
 max_value = 250.0
 value = 250.0
 show_percentage = false
+
+[node name="TopCenter" type="Control" parent="Root"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -235.0
+offset_top = 14.0
+offset_right = 235.0
+offset_bottom = 104.0
+
+[node name="PhasePanel" type="PanelContainer" parent="Root/TopCenter"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/TopCenter/PhasePanel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/TopCenter/PhasePanel/Margin"]
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="RunTitleLabel" type="Label" parent="Root/TopCenter/PhasePanel/Margin/VBox"]
+text = "SCRAPBORN"
+horizontal_alignment = 1
+
+[node name="RunStatusLabel" type="Label" parent="Root/TopCenter/PhasePanel/Margin/VBox"]
+text = "Day 1 - 90s remaining"
+horizontal_alignment = 1
+
+[node name="GlobalMessageLabel" type="Label" parent="Root/TopCenter/PhasePanel/Margin/VBox"]
+visible = false
+text = "Core destroyed"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="TopRight" type="Control" parent="Root"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -330.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 244.0
+
+[node name="DebugPanel" type="PanelContainer" parent="Root/TopRight"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/TopRight/DebugPanel"]
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/TopRight/DebugPanel/Margin"]
+theme_override_constants/separation = 4
+
+[node name="DebugTitleLabel" type="Label" parent="Root/TopRight/DebugPanel/Margin/VBox"]
+text = "DEBUG"
+horizontal_alignment = 1
+
+[node name="RunStatsLabel" type="Label" parent="Root/TopRight/DebugPanel/Margin/VBox"]
+text = "Kills 0"
+autowrap_mode = 3
+
+[node name="BottomLeft" type="Control" parent="Root"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -198.0
+offset_right = 360.0
+offset_bottom = -16.0
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomLeft"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="HoverPreviewPanel" type="PanelContainer" parent="Root/BottomLeft/VBox"]
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomLeft/VBox/HoverPreviewPanel"]
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HoverPreviewLabel" type="Label" parent="Root/BottomLeft/VBox/HoverPreviewPanel/Margin"]
+text = "Building\nHP 0 / 0\nIdle"
+autowrap_mode = 3
+
+[node name="HintPanel" type="PanelContainer" parent="Root/BottomLeft/VBox"]
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomLeft/VBox/HintPanel"]
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomLeft/VBox/HintPanel/Margin"]
+theme_override_constants/separation = 4
+
+[node name="TutorialHintLabel" type="Label" parent="Root/BottomLeft/VBox/HintPanel/Margin/VBox"]
+text = "WASD or Arrow Keys to move."
+autowrap_mode = 3
+
+[node name="InteractionHintLabel" type="Label" parent="Root/BottomLeft/VBox/HintPanel/Margin/VBox"]
+visible = false
+text = "Press E to gather Scrap"
+autowrap_mode = 3
+
+[node name="BottomCenter" type="Control" parent="Root"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -430.0
+offset_top = -190.0
+offset_right = 430.0
+offset_bottom = -16.0
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="BuildTooltipPanel" type="PanelContainer" parent="Root/BottomCenter/VBox"]
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildTooltipPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildTooltipPanel/Margin"]
+theme_override_constants/separation = 3
+
+[node name="BuildTooltipTitleLabel" type="Label" parent="Root/BottomCenter/VBox/BuildTooltipPanel/Margin/VBox"]
+text = "Drill"
+horizontal_alignment = 1
+
+[node name="BuildTooltipBodyLabel" type="Label" parent="Root/BottomCenter/VBox/BuildTooltipPanel/Margin/VBox"]
+text = "Produces Scrap near deposits\nCost: 20 Scrap\nValid placement"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BuildHotbar" type="HBoxContainer" parent="Root/BottomCenter/VBox"]
+visible = false
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Slot1" type="PanelContainer" parent="Root/BottomCenter/VBox/BuildHotbar"]
+custom_minimum_size = Vector2(132, 72)
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot1"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot1/Margin"]
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot1/Margin/VBox"]
+text = "1 Drill"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot1/Margin/VBox"]
+text = "20S"
+horizontal_alignment = 1
+
+[node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot1/Margin/VBox"]
+text = "CAN"
+horizontal_alignment = 1
+
+[node name="Slot2" type="PanelContainer" parent="Root/BottomCenter/VBox/BuildHotbar"]
+custom_minimum_size = Vector2(132, 72)
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin"]
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin/VBox"]
+text = "2 Generator"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin/VBox"]
+text = "25S"
+horizontal_alignment = 1
+
+[node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin/VBox"]
+text = "CAN"
+horizontal_alignment = 1
+
+[node name="Slot3" type="PanelContainer" parent="Root/BottomCenter/VBox/BuildHotbar"]
+custom_minimum_size = Vector2(132, 72)
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin"]
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin/VBox"]
+text = "3 Assembler"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin/VBox"]
+text = "40S 10E"
+horizontal_alignment = 1
+
+[node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin/VBox"]
+text = "NEED"
+horizontal_alignment = 1
+
+[node name="Slot4" type="PanelContainer" parent="Root/BottomCenter/VBox/BuildHotbar"]
+custom_minimum_size = Vector2(132, 72)
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin"]
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin/VBox"]
+text = "4 Turret"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin/VBox"]
+text = "30S 5E"
+horizontal_alignment = 1
+
+[node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin/VBox"]
+text = "NEED"
+horizontal_alignment = 1
+
+[node name="Slot5" type="PanelContainer" parent="Root/BottomCenter/VBox/BuildHotbar"]
+custom_minimum_size = Vector2(132, 72)
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot5"]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Root/BottomCenter/VBox/BuildHotbar/Slot5/Margin"]
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot5/Margin/VBox"]
+text = "5 Storage"
+horizontal_alignment = 1
+
+[node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot5/Margin/VBox"]
+text = "20S"
+horizontal_alignment = 1
+
+[node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot5/Margin/VBox"]
+text = "CAN"
+horizontal_alignment = 1
+
+[node name="BuildHintPanel" type="PanelContainer" parent="Root/BottomCenter/VBox"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/BottomCenter/VBox/BuildHintPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 7
+
+[node name="BuildHintLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHintPanel/Margin"]
+text = "B: Build"
+horizontal_alignment = 1
