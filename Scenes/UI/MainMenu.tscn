@@ -1,0 +1,82 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/MainMenuController.cs" id="1_menu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.025, 0.032, 0.032, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.23, 0.22, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="MainMenu" type="CanvasLayer"]
+script = ExtResource("1_menu")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.01, 0.014, 0.014, 1)
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -235.0
+offset_right = 250.0
+offset_bottom = 235.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/Panel"]
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="Root/Panel/Margin"]
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Root/Panel/Margin/VBox"]
+text = "SCRAPBORN"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="Root/Panel/Margin/VBox"]
+text = "Build. Automate. Survive."
+horizontal_alignment = 1
+
+[node name="NewRunButton" type="Button" parent="Root/Panel/Margin/VBox"]
+text = "New Run"
+
+[node name="ControlsButton" type="Button" parent="Root/Panel/Margin/VBox"]
+text = "Controls"
+
+[node name="ControlsPanel" type="PanelContainer" parent="Root/Panel/Margin/VBox"]
+visible = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/Panel/Margin/VBox/ControlsPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="ControlsLabel" type="Label" parent="Root/Panel/Margin/VBox/ControlsPanel/Margin"]
+text = "Move: WASD / Arrow Keys\nGather: E\nRepair: F\nBuild Mode: B\nSelect Building: 1-5\nPlace Building: Left Click\nCancel Build Mode: Right Click\nInspect: Left Click outside Build Mode\nPause: Esc"
+autowrap_mode = 3
+
+[node name="QuitButton" type="Button" parent="Root/Panel/Margin/VBox"]
+text = "Quit"

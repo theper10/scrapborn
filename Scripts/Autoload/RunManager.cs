@@ -12,6 +12,8 @@ public partial class RunManager : Node
 		bool isRunOver);
 
 	private const string RestartRunAction = "RestartRun";
+	private const string ReturnToMainMenuAction = "ReturnToMainMenu";
+	private const string MainMenuScenePath = "res://Scenes/UI/MainMenu.tscn";
 
 	private readonly Dictionary<int, EnemyType[]> waveDefinitions = new()
 	{
@@ -35,6 +37,7 @@ public partial class RunManager : Node
 	private int spawnedThisNight;
 	private int activeEnemies;
 	private string defeatReason = "Core destroyed.";
+	private bool isRunSceneBound;
 	private readonly RunStats stats = new();
 
 	[Export]
@@ -58,6 +61,7 @@ public partial class RunManager : Node
 	public override void _Ready()
 	{
 		EnsureRestartInputAction();
+		EnsureReturnToMainMenuInputAction();
 		ProcessMode = ProcessModeEnum.Always;
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
 		if (upgradeManager != null)
@@ -76,7 +80,16 @@ public partial class RunManager : Node
 			{
 				RestartRun();
 			}
+			else if (Input.IsActionJustPressed(ReturnToMainMenuAction))
+			{
+				ReturnToMainMenu();
+			}
 
+			return;
+		}
+
+		if (!isRunSceneBound)
+		{
 			return;
 		}
 
@@ -97,6 +110,7 @@ public partial class RunManager : Node
 
 	public void BindCurrentScene(Node sceneRoot)
 	{
+		isRunSceneBound = true;
 		if (enemySpawner != null && IsInstanceValid(enemySpawner))
 		{
 			enemySpawner.EnemySpawned -= OnEnemySpawned;
@@ -305,8 +319,27 @@ public partial class RunManager : Node
 		GetTree().Paused = false;
 		GetNodeOrNull<ResourceManager>("/root/ResourceManager")?.ResetResources();
 		upgradeManager?.ResetUpgrades();
+		isRunSceneBound = false;
 		ResetRunState();
 		GetTree().ReloadCurrentScene();
+	}
+
+	public void PrepareNewRun()
+	{
+		GetTree().Paused = false;
+		ClearEnemies();
+		GetNodeOrNull<ResourceManager>("/root/ResourceManager")?.ResetResources();
+		upgradeManager?.ResetUpgrades();
+		isRunSceneBound = false;
+		enemySpawner = null;
+		core = null;
+		ResetRunState();
+	}
+
+	public void ReturnToMainMenu()
+	{
+		PrepareNewRun();
+		GetTree().ChangeSceneToFile(MainMenuScenePath);
 	}
 
 	private void ResetRunState()
@@ -410,8 +443,8 @@ public partial class RunManager : Node
 	{
 		return currentPhase switch
 		{
-			RunPhase.Victory => "Victory! You survived 5 nights. Press R to restart.",
-			RunPhase.Defeat => $"Defeat! {defeatReason} Press R to restart.",
+			RunPhase.Victory => "Victory! You survived 5 nights. Press R to restart or M for Main Menu.",
+			RunPhase.Defeat => $"Defeat! {defeatReason} Press R to restart or M for Main Menu.",
 			_ => string.Empty
 		};
 	}
@@ -440,23 +473,33 @@ public partial class RunManager : Node
 
 	private static void EnsureRestartInputAction()
 	{
-		if (!InputMap.HasAction(RestartRunAction))
+		EnsureActionHasKey(RestartRunAction, Key.R);
+	}
+
+	private static void EnsureReturnToMainMenuInputAction()
+	{
+		EnsureActionHasKey(ReturnToMainMenuAction, Key.M);
+	}
+
+	private static void EnsureActionHasKey(string action, Key key)
+	{
+		if (!InputMap.HasAction(action))
 		{
-			InputMap.AddAction(RestartRunAction);
+			InputMap.AddAction(action);
 		}
 
-		foreach (InputEvent inputEvent in InputMap.ActionGetEvents(RestartRunAction))
+		foreach (InputEvent inputEvent in InputMap.ActionGetEvents(action))
 		{
 			if (inputEvent is InputEventKey keyEvent &&
-			    (keyEvent.PhysicalKeycode == Key.R || keyEvent.Keycode == Key.R))
+			    (keyEvent.PhysicalKeycode == key || keyEvent.Keycode == key))
 			{
 				return;
 			}
 		}
 
-		InputMap.ActionAddEvent(RestartRunAction, new InputEventKey
+		InputMap.ActionAddEvent(action, new InputEventKey
 		{
-			PhysicalKeycode = Key.R
+			PhysicalKeycode = key
 		});
 	}
 }

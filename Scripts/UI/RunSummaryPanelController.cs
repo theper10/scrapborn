@@ -67,6 +67,7 @@ public partial class RunSummaryPanelController : CanvasLayer
 			$"Scrap spent on repairs: {stats.ScrapSpentOnRepairs}\n" +
 			$"Health repaired: {stats.HealthRepaired}\n" +
 			$"Upgrades chosen: {stats.UpgradesChosen}\n\n" +
-			"Press R to restart";
+			"Press R to restart\n" +
+			"Press M for Main Menu";
 	}
 }

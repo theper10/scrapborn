@@ -8,6 +8,7 @@ public partial class PauseMenuController : CanvasLayer
 	private Control root;
 	private Button resumeButton;
 	private Button restartButton;
+	private Button mainMenuButton;
 	private Button quitButton;
 
 	public override void _Ready()
@@ -18,10 +19,12 @@ public partial class PauseMenuController : CanvasLayer
 		root = GetNode<Control>("Root");
 		resumeButton = GetNode<Button>("Root/Panel/VBox/ResumeButton");
 		restartButton = GetNode<Button>("Root/Panel/VBox/RestartButton");
+		mainMenuButton = GetNode<Button>("Root/Panel/VBox/MainMenuButton");
 		quitButton = GetNode<Button>("Root/Panel/VBox/QuitButton");
 
 		resumeButton.Pressed += Resume;
 		restartButton.Pressed += RestartRun;
+		mainMenuButton.Pressed += ReturnToMainMenu;
 		quitButton.Pressed += QuitToDesktop;
 		root.Visible = false;
 	}
@@ -36,6 +39,11 @@ public partial class PauseMenuController : CanvasLayer
 		if (restartButton != null)
 		{
 			restartButton.Pressed -= RestartRun;
+		}
+
+		if (mainMenuButton != null)
+		{
+			mainMenuButton.Pressed -= ReturnToMainMenu;
 		}
 
 		if (quitButton != null)
@@ -78,6 +86,12 @@ public partial class PauseMenuController : CanvasLayer
 	{
 		SetPaused(false);
 		runManager?.RestartRun();
+	}
+
+	private void ReturnToMainMenu()
+	{
+		SetPaused(false);
+		runManager?.ReturnToMainMenu();
 	}
 
 	private void QuitToDesktop()
