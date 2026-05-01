@@ -21,6 +21,11 @@ ResourceManager="*res://Scripts/Autoload/ResourceManager.cs"
 UpgradeManager="*res://Scripts/Autoload/UpgradeManager.cs"
 RunManager="*res://Scripts/Autoload/RunManager.cs"
 
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
 [dotnet]
 
 project/assembly_name="Scrapborn"

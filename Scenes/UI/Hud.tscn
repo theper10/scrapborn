@@ -89,7 +89,7 @@ anchor_right = 0.5
 offset_left = -235.0
 offset_top = 14.0
 offset_right = 235.0
-offset_bottom = 104.0
+offset_bottom = 126.0
 
 [node name="PhasePanel" type="PanelContainer" parent="Root/TopCenter"]
 anchors_preset = 15
@@ -118,6 +118,43 @@ horizontal_alignment = 1
 [node name="GlobalMessageLabel" type="Label" parent="Root/TopCenter/PhasePanel/Margin/VBox"]
 visible = false
 text = "Core destroyed"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="FeedbackLabel" type="Label" parent="Root/TopCenter/PhasePanel/Margin/VBox"]
+visible = false
+text = "Not enough resources"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="AnnouncementPanel" type="PanelContainer" parent="Root"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.34
+anchor_right = 0.5
+anchor_bottom = 0.34
+offset_left = -220.0
+offset_top = -48.0
+offset_right = 220.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/AnnouncementPanel"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root/AnnouncementPanel/Margin"]
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AnnouncementTitleLabel" type="Label" parent="Root/AnnouncementPanel/Margin/VBox"]
+text = "Night 1"
+horizontal_alignment = 1
+
+[node name="AnnouncementDetailLabel" type="Label" parent="Root/AnnouncementPanel/Margin/VBox"]
+text = "Enemies incoming"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -194,6 +231,11 @@ theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="Root/BottomLeft/VBox/HintPanel/Margin"]
 theme_override_constants/separation = 4
+
+[node name="ObjectiveLabel" type="Label" parent="Root/BottomLeft/VBox/HintPanel/Margin/VBox"]
+visible = false
+text = "Objective: Gather Scrap"
+autowrap_mode = 3
 
 [node name="TutorialHintLabel" type="Label" parent="Root/BottomLeft/VBox/HintPanel/Margin/VBox"]
 text = "WASD or Arrow Keys to move."
@@ -291,7 +333,7 @@ text = "2 Generator"
 horizontal_alignment = 1
 
 [node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin/VBox"]
-text = "25S"
+text = "20S"
 horizontal_alignment = 1
 
 [node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot2/Margin/VBox"]
@@ -316,7 +358,7 @@ text = "3 Assembler"
 horizontal_alignment = 1
 
 [node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin/VBox"]
-text = "40S 10E"
+text = "35S 8E"
 horizontal_alignment = 1
 
 [node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot3/Margin/VBox"]
@@ -341,7 +383,7 @@ text = "4 Turret"
 horizontal_alignment = 1
 
 [node name="CostLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin/VBox"]
-text = "30S 5E"
+text = "25S 3E"
 horizontal_alignment = 1
 
 [node name="StateLabel" type="Label" parent="Root/BottomCenter/VBox/BuildHotbar/Slot4/Margin/VBox"]

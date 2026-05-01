@@ -82,7 +82,13 @@ public partial class Building : Node2D, IInspectable
 		CurrentHealth = Math.Clamp(CurrentHealth + amount, 0, maxHealth);
 		UpdateHealthVisuals();
 		UpdateStatusVisuals();
-		return CurrentHealth - previousHealth;
+		int repaired = CurrentHealth - previousHealth;
+		if (repaired > 0)
+		{
+			PulseRepairVisual();
+		}
+
+		return repaired;
 	}
 
 	public void SetSelected(bool selected)
@@ -176,13 +182,30 @@ public partial class Building : Node2D, IInspectable
 			return;
 		}
 
+		Modulate = GetHealthVisualColor();
+	}
+
+	private Color GetHealthVisualColor()
+	{
 		if (maxHealth > 0 && CurrentHealth < maxHealth)
 		{
-			Modulate = new Color(1f, 0.72f, 0.52f, 1f);
+			return new Color(1f, 0.72f, 0.52f, 1f);
+		}
+
+		return Colors.White;
+	}
+
+	private void PulseRepairVisual()
+	{
+		if (IsDestroyed)
+		{
 			return;
 		}
 
-		Modulate = Colors.White;
+		Color targetColor = GetHealthVisualColor();
+		Modulate = new Color(0.55f, 1f, 0.65f, 1f);
+		Tween tween = CreateTween();
+		tween.TweenProperty(this, "modulate", targetColor, 0.18);
 	}
 
 	private void UpdateStatusVisuals()

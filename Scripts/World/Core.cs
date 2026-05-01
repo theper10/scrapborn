@@ -72,7 +72,13 @@ public partial class Core : Node2D, IInspectable
 		int previousHealth = CurrentHealth;
 		CurrentHealth = Math.Clamp(CurrentHealth + amount, 0, maxHealth);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
-		return CurrentHealth - previousHealth;
+		int repaired = CurrentHealth - previousHealth;
+		if (repaired > 0)
+		{
+			PulseRepairVisual();
+		}
+
+		return repaired;
 	}
 
 	public void SetSelected(bool selected)
@@ -122,6 +128,14 @@ public partial class Core : Node2D, IInspectable
 		{
 			Modulate = Colors.White;
 		}
+	}
+
+	private void PulseRepairVisual()
+	{
+		damageFlashTimer = 0.0;
+		Modulate = new Color(0.55f, 1f, 0.65f, 1f);
+		Tween tween = CreateTween();
+		tween.TweenProperty(this, "modulate", Colors.White, 0.18);
 	}
 
 	private void CreateSelectionHighlight()

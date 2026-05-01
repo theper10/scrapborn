@@ -17,6 +17,7 @@ public partial class HudController : CanvasLayer
 	private PlayerInteraction playerInteraction;
 	private BuildingPlacer buildingPlacer;
 	private SelectionController selectionController;
+	private ObjectiveTracker objectiveTracker;
 	private Core core;
 	private IInspectable hoveredInspectable;
 
@@ -26,9 +27,13 @@ public partial class HudController : CanvasLayer
 	private Label runStatusLabel;
 	private Label runStatsLabel;
 	private Label tutorialHintLabel;
+	private Label objectiveLabel;
 	private Label interactionHintLabel;
 	private Label hoverPreviewLabel;
 	private Label globalMessageLabel;
+	private Label feedbackLabel;
+	private Label announcementTitleLabel;
+	private Label announcementDetailLabel;
 	private Label playerHealthLabel;
 	private Label coreHealthLabel;
 	private Label buildTooltipTitleLabel;
@@ -38,17 +43,28 @@ public partial class HudController : CanvasLayer
 	private PanelContainer debugPanel;
 	private PanelContainer hintPanel;
 	private PanelContainer hoverPreviewPanel;
+	private PanelContainer announcementPanel;
 	private PanelContainer buildHintPanel;
 	private PanelContainer buildTooltipPanel;
 	private HBoxContainer buildHotbar;
+
+	private const double FeedbackDuration = 2.2;
+	private const double FeedbackRepeatCooldown = 1.2;
+	private const double AnnouncementDuration = 3.0;
 
 	private int tutorialStep;
 	private bool isTutorialHidden;
 	private bool isDebugStatsVisible;
 	private bool currentInteractionHintVisible;
+	private bool currentObjectiveVisible;
 	private string currentInteractionHintText = string.Empty;
+	private string currentObjectiveText = string.Empty;
 	private string latestBuildStatusText = string.Empty;
+	private string lastFeedbackText = string.Empty;
 	private double tutorialElapsed;
+	private double feedbackTimer;
+	private double feedbackRepeatCooldown;
+	private double announcementTimer;
 	private Vector2 initialPlayerPosition;
 	private bool hasInitialPlayerPosition;
 
@@ -67,6 +83,7 @@ public partial class HudController : CanvasLayer
 	public override void _Process(double delta)
 	{
 		tutorialElapsed += delta;
+		UpdateTemporaryUi(delta);
 
 		if (Input.IsActionJustPressed(DismissTutorialAction))
 		{
@@ -98,6 +115,7 @@ public partial class HudController : CanvasLayer
 		if (runManager != null)
 		{
 			runManager.RunStateChanged -= UpdateRunStatus;
+			runManager.RunAnnouncement -= ShowRunAnnouncement;
 		}
 
 		if (player != null)
@@ -120,6 +138,11 @@ public partial class HudController : CanvasLayer
 			selectionController.HoverChanged -= UpdateHoverPreview;
 		}
 
+		if (objectiveTracker != null)
+		{
+			objectiveTracker.ObjectiveChanged -= UpdateObjective;
+		}
+
 		if (core != null)
 		{
 			core.HealthChanged -= UpdateCoreHealth;
@@ -138,6 +161,10 @@ public partial class HudController : CanvasLayer
 
 		runStatusLabel = GetNode<Label>("Root/TopCenter/PhasePanel/Margin/VBox/RunStatusLabel");
 		globalMessageLabel = GetNode<Label>("Root/TopCenter/PhasePanel/Margin/VBox/GlobalMessageLabel");
+		feedbackLabel = GetNode<Label>("Root/TopCenter/PhasePanel/Margin/VBox/FeedbackLabel");
+		announcementPanel = GetNode<PanelContainer>("Root/AnnouncementPanel");
+		announcementTitleLabel = GetNode<Label>("Root/AnnouncementPanel/Margin/VBox/AnnouncementTitleLabel");
+		announcementDetailLabel = GetNode<Label>("Root/AnnouncementPanel/Margin/VBox/AnnouncementDetailLabel");
 
 		debugPanel = GetNode<PanelContainer>("Root/TopRight/DebugPanel");
 		runStatsLabel = GetNode<Label>("Root/TopRight/DebugPanel/Margin/VBox/RunStatsLabel");
@@ -145,6 +172,7 @@ public partial class HudController : CanvasLayer
 		hoverPreviewPanel = GetNode<PanelContainer>("Root/BottomLeft/VBox/HoverPreviewPanel");
 		hoverPreviewLabel = GetNode<Label>("Root/BottomLeft/VBox/HoverPreviewPanel/Margin/HoverPreviewLabel");
 		hintPanel = GetNode<PanelContainer>("Root/BottomLeft/VBox/HintPanel");
+		objectiveLabel = GetNode<Label>("Root/BottomLeft/VBox/HintPanel/Margin/VBox/ObjectiveLabel");
 		tutorialHintLabel = GetNode<Label>("Root/BottomLeft/VBox/HintPanel/Margin/VBox/TutorialHintLabel");
 		interactionHintLabel = GetNode<Label>("Root/BottomLeft/VBox/HintPanel/Margin/VBox/InteractionHintLabel");
 
@@ -186,6 +214,7 @@ public partial class HudController : CanvasLayer
 		if (runManager != null)
 		{
 			runManager.RunStateChanged += UpdateRunStatus;
+			runManager.RunAnnouncement += ShowRunAnnouncement;
 		}
 		else
 		{
@@ -253,6 +282,17 @@ public partial class HudController : CanvasLayer
 		{
 			GD.PushWarning("Hud could not find the SelectionController node.");
 		}
+
+		objectiveTracker = parent?.GetNodeOrNull<ObjectiveTracker>("ObjectiveTracker");
+		if (objectiveTracker != null)
+		{
+			objectiveTracker.ObjectiveChanged += UpdateObjective;
+			UpdateObjective(objectiveTracker.CurrentObjectiveText, objectiveTracker.IsObjectiveVisible);
+		}
+		else
+		{
+			GD.PushWarning("Hud could not find the ObjectiveTracker node.");
+		}
 	}
 
 	private void RefreshResources()
@@ -286,6 +326,11 @@ public partial class HudController : CanvasLayer
 		coreHealthBar.MaxValue = maxHealth;
 		coreHealthBar.Value = currentHealth;
 
+		if (currentHealth > 0 && maxHealth > 0 && currentHealth <= Mathf.CeilToInt(maxHealth * 0.3f))
+		{
+			ShowTemporaryMessage("Warning: Core integrity low");
+		}
+
 		if (runManager == null)
 		{
 			globalMessageLabel.Visible = currentHealth <= 0;
@@ -297,6 +342,11 @@ public partial class HudController : CanvasLayer
 	{
 		currentInteractionHintText = hintText;
 		currentInteractionHintVisible = isVisible;
+		if (isVisible && (hintText == "Need Scrap to repair" || hintText == "Scrap storage full"))
+		{
+			ShowTemporaryMessage(hintText);
+		}
+
 		RefreshHintPanel();
 	}
 
@@ -307,7 +357,19 @@ public partial class HudController : CanvasLayer
 		string statusText)
 	{
 		latestBuildStatusText = statusText;
+		if (isBuildModeActive && IsActionableBuildStatus(statusText))
+		{
+			ShowTemporaryMessage(statusText);
+		}
+
 		RefreshBuildUi();
+	}
+
+	private void UpdateObjective(string objectiveText, bool isVisible)
+	{
+		currentObjectiveText = objectiveText;
+		currentObjectiveVisible = isVisible;
+		RefreshHintPanel();
 	}
 
 	private void UpdateRunStatus(
@@ -323,6 +385,14 @@ public partial class HudController : CanvasLayer
 		UpdateDebugStats();
 		globalMessageLabel.Visible = isRunOver;
 		globalMessageLabel.Text = messageText;
+	}
+
+	private void ShowRunAnnouncement(string titleText, string detailText)
+	{
+		announcementTitleLabel.Text = titleText;
+		announcementDetailLabel.Text = detailText;
+		announcementPanel.Visible = true;
+		announcementTimer = AnnouncementDuration;
 	}
 
 	private void RefreshBuildUi()
@@ -419,7 +489,8 @@ public partial class HudController : CanvasLayer
 
 	private void RefreshTutorialHint()
 	{
-		if (isTutorialHidden ||
+		if (currentObjectiveVisible ||
+		    isTutorialHidden ||
 		    runManager == null ||
 		    GetTree().Paused ||
 		    runManager.CurrentPhase is not (RunPhase.Day or RunPhase.Night) ||
@@ -441,9 +512,13 @@ public partial class HudController : CanvasLayer
 
 	private void RefreshHintPanel()
 	{
+		objectiveLabel.Text = string.IsNullOrEmpty(currentObjectiveText)
+			? string.Empty
+			: $"Objective: {currentObjectiveText}";
+		objectiveLabel.Visible = currentObjectiveVisible;
 		interactionHintLabel.Text = currentInteractionHintText;
 		interactionHintLabel.Visible = currentInteractionHintVisible;
-		hintPanel.Visible = tutorialHintLabel.Visible || currentInteractionHintVisible;
+		hintPanel.Visible = currentObjectiveVisible || tutorialHintLabel.Visible || currentInteractionHintVisible;
 	}
 
 	private void UpdateDebugPanelVisibility()
@@ -553,6 +628,62 @@ public partial class HudController : CanvasLayer
 			7 => "Choose an upgrade after each night.",
 			_ => string.Empty
 		};
+	}
+
+	private void UpdateTemporaryUi(double delta)
+	{
+		if (feedbackRepeatCooldown > 0.0)
+		{
+			feedbackRepeatCooldown -= delta;
+		}
+
+		if (feedbackTimer > 0.0)
+		{
+			feedbackTimer -= delta;
+			if (feedbackTimer <= 0.0)
+			{
+				feedbackLabel.Visible = false;
+			}
+		}
+
+		if (announcementTimer > 0.0)
+		{
+			announcementTimer -= delta;
+			if (announcementTimer <= 0.0)
+			{
+				announcementPanel.Visible = false;
+			}
+		}
+	}
+
+	private void ShowTemporaryMessage(string message)
+	{
+		if (string.IsNullOrWhiteSpace(message))
+		{
+			return;
+		}
+
+		if (message == lastFeedbackText && feedbackRepeatCooldown > 0.0)
+		{
+			return;
+		}
+
+		lastFeedbackText = message;
+		feedbackRepeatCooldown = FeedbackRepeatCooldown;
+		feedbackTimer = FeedbackDuration;
+		feedbackLabel.Text = message;
+		feedbackLabel.Visible = true;
+	}
+
+	private static bool IsActionableBuildStatus(string statusText)
+	{
+		return statusText is
+			"Not enough resources" or
+			"Cell occupied" or
+			"Blocked by Core" or
+			"Blocked by ScrapDeposit" or
+			"Invalid location" or
+			"Invalid placement";
 	}
 
 	private static void EnsureInputActions()

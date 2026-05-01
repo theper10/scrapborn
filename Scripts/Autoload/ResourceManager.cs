@@ -7,9 +7,11 @@ public partial class ResourceManager : Node
 	[Signal]
 	public delegate void ResourcesChangedEventHandler();
 
+	private const int StartingScrap = 70;
+
 	private readonly Dictionary<ResourceType, int> amounts = new()
 	{
-		{ ResourceType.Scrap, 50 },
+		{ ResourceType.Scrap, StartingScrap },
 		{ ResourceType.Energy, 0 },
 		{ ResourceType.Ammo, 0 }
 	};
@@ -29,7 +31,7 @@ public partial class ResourceManager : Node
 
 	public void ResetResources()
 	{
-		amounts[ResourceType.Scrap] = 50;
+		amounts[ResourceType.Scrap] = StartingScrap;
 		amounts[ResourceType.Energy] = 0;
 		amounts[ResourceType.Ammo] = 0;
 		maxValues[ResourceType.Scrap] = 200;

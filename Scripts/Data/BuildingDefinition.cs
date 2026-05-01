@@ -43,7 +43,7 @@ public static class BuildingDefinitions
 				BuildingType.Generator,
 				"Generator",
 				"res://Scenes/Buildings/Generator.tscn",
-				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 25 } },
+				new Dictionary<ResourceType, int> { { ResourceType.Scrap, 20 } },
 				"Produces Energy")
 		},
 		{
@@ -54,8 +54,8 @@ public static class BuildingDefinitions
 				"res://Scenes/Buildings/Assembler.tscn",
 				new Dictionary<ResourceType, int>
 				{
-					{ ResourceType.Scrap, 40 },
-					{ ResourceType.Energy, 10 }
+					{ ResourceType.Scrap, 35 },
+					{ ResourceType.Energy, 8 }
 				},
 				"Makes Ammo")
 		},
@@ -67,8 +67,8 @@ public static class BuildingDefinitions
 				"res://Scenes/Buildings/Turret.tscn",
 				new Dictionary<ResourceType, int>
 				{
-					{ ResourceType.Scrap, 30 },
-					{ ResourceType.Energy, 5 }
+					{ ResourceType.Scrap, 25 },
+					{ ResourceType.Energy, 3 }
 				},
 				"Shoots enemies")
 		},

@@ -11,15 +11,18 @@ public partial class RunManager : Node
 		string messageText,
 		bool isRunOver);
 
+	[Signal]
+	public delegate void RunAnnouncementEventHandler(string titleText, string detailText);
+
 	private const string RestartRunAction = "RestartRun";
 	private const string ReturnToMainMenuAction = "ReturnToMainMenu";
 	private const string MainMenuScenePath = "res://Scenes/UI/MainMenu.tscn";
 
 	private readonly Dictionary<int, EnemyType[]> waveDefinitions = new()
 	{
-		{ 1, BuildWave(6, 0, 0) },
-		{ 2, BuildWave(10, 2, 0) },
-		{ 3, BuildWave(14, 5, 0) },
+		{ 1, BuildWave(4, 0, 0) },
+		{ 2, BuildWave(8, 2, 0) },
+		{ 3, BuildWave(12, 4, 0) },
 		{ 4, BuildWave(12, 6, 3) },
 		{ 5, BuildWave(20, 8, 5) }
 	};
@@ -144,6 +147,7 @@ public partial class RunManager : Node
 		}
 
 		EmitRunState();
+		EmitRunAnnouncement("Day 1", "Gather scrap and prepare");
 	}
 
 	private void UpdateDay(double delta)
@@ -173,6 +177,7 @@ public partial class RunManager : Node
 		if (spawnedThisNight >= currentWave.Length && activeEnemies <= 0)
 		{
 			stats.RecordNightSurvived();
+			EmitRunAnnouncement("Wave cleared", $"Night {currentNight} survived");
 
 			if (currentNight >= GetMaxNight())
 			{
@@ -199,6 +204,7 @@ public partial class RunManager : Node
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
 		EmitRunState();
+		EmitRunAnnouncement($"Day {day}", "Build, repair, and prepare");
 	}
 
 	private void StartNight(int night)
@@ -209,6 +215,7 @@ public partial class RunManager : Node
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
 		EmitRunState();
+		EmitRunAnnouncement($"Night {night}", "Enemies incoming");
 	}
 
 	private void StartUpgradeSelection(int nextDay)
@@ -406,6 +413,11 @@ public partial class RunManager : Node
 			GetDetailText(),
 			GetMessageText(),
 			IsRunOverInternal());
+	}
+
+	private void EmitRunAnnouncement(string titleText, string detailText)
+	{
+		EmitSignal(SignalName.RunAnnouncement, titleText, detailText);
 	}
 
 	private string GetPhaseText()
