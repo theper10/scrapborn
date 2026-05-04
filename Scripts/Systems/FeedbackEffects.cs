@@ -34,7 +34,8 @@ public static class FeedbackEffects
 		string throttleKey = "",
 		Vector2? screenOffset = null)
 	{
-		if (!ShouldShowFloatingText(category))
+		FeedbackIntensity intensity = GetFeedbackIntensity(source);
+		if (!ShouldShowFloatingText(category, intensity))
 		{
 			return;
 		}
@@ -43,7 +44,7 @@ public static class FeedbackEffects
 			worldPosition,
 			message,
 			color,
-			GetEffectiveCooldown(category, cooldownSeconds),
+			GetEffectiveCooldown(category, cooldownSeconds, intensity),
 			throttleKey,
 			screenOffset,
 			GetTextScale(category));
@@ -75,9 +76,15 @@ public static class FeedbackEffects
 		return $"Feedback: {CurrentIntensity}";
 	}
 
-	private static bool ShouldShowFloatingText(FeedbackCategory category)
+	private static FeedbackIntensity GetFeedbackIntensity(Node source)
 	{
-		return CurrentIntensity switch
+		SettingsManager settingsManager = GetSettingsManager(source);
+		return settingsManager?.FeedbackIntensity ?? CurrentIntensity;
+	}
+
+	private static bool ShouldShowFloatingText(FeedbackCategory category, FeedbackIntensity intensity)
+	{
+		return intensity switch
 		{
 			FeedbackIntensity.High => true,
 			FeedbackIntensity.Medium => true,
@@ -91,14 +98,14 @@ public static class FeedbackEffects
 		};
 	}
 
-	private static float GetEffectiveCooldown(FeedbackCategory category, float requestedCooldown)
+	private static float GetEffectiveCooldown(FeedbackCategory category, float requestedCooldown, FeedbackIntensity intensity)
 	{
 		if (category != FeedbackCategory.Production)
 		{
 			return requestedCooldown;
 		}
 
-		return CurrentIntensity switch
+		return intensity switch
 		{
 			FeedbackIntensity.High => Mathf.Max(requestedCooldown, 1f),
 			FeedbackIntensity.Medium => Mathf.Max(requestedCooldown, 3f),
@@ -121,6 +128,11 @@ public static class FeedbackEffects
 	private static FloatingTextSpawner GetFloatingTextSpawner(Node source)
 	{
 		return source?.GetTree()?.Root.FindChild("FloatingTextSpawner", true, false) as FloatingTextSpawner;
+	}
+
+	private static SettingsManager GetSettingsManager(Node source)
+	{
+		return source?.GetNodeOrNull<SettingsManager>("/root/SettingsManager");
 	}
 
 	private static CameraShake GetCameraShake(Node source)

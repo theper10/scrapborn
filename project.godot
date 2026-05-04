@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+SettingsManager="*res://Scripts/Autoload/SettingsManager.cs"
 ResourceManager="*res://Scripts/Autoload/ResourceManager.cs"
 UpgradeManager="*res://Scripts/Autoload/UpgradeManager.cs"
 RunManager="*res://Scripts/Autoload/RunManager.cs"

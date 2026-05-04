@@ -1,6 +1,7 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://Scripts/UI/PauseMenuController.cs" id="1_pause"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/SettingsPanel.tscn" id="2_settings"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 30
@@ -36,12 +37,9 @@ text = "Paused"
 horizontal_alignment = 1
 
 [node name="ControlsLabel" type="Label" parent="Root/Panel/VBox"]
-text = "Move: WASD / Arrows\nGather: E | Repair: F\nBuild: B, 1-5, Left Click\nCancel Build: Right Click\nInspect: Left Click outside Build Mode\nDebug: F8 shake | F9 stats\nRestart after run end: R\nMain menu after run end: M"
+text = "Move: WASD / Arrows\nGather: E | Repair: F\nBuild: B, 1-5, Left Click\nCancel Build: Right Click\nInspect: Left Click outside Build Mode\nDebug: F6 shake | F10 stats\nRestart after run end: R\nMain menu after run end: M"
 autowrap_mode = 3
 horizontal_alignment = 1
-
-[node name="FeedbackButton" type="Button" parent="Root/Panel/VBox"]
-text = "Feedback: Medium"
 
 [node name="ResumeButton" type="Button" parent="Root/Panel/VBox"]
 text = "Resume"
@@ -49,8 +47,13 @@ text = "Resume"
 [node name="RestartButton" type="Button" parent="Root/Panel/VBox"]
 text = "Restart Run"
 
+[node name="SettingsButton" type="Button" parent="Root/Panel/VBox"]
+text = "Settings"
+
 [node name="MainMenuButton" type="Button" parent="Root/Panel/VBox"]
 text = "Main Menu"
 
 [node name="QuitButton" type="Button" parent="Root/Panel/VBox"]
 text = "Quit to Desktop"
+
+[node name="SettingsPanel" parent="." instance=ExtResource("2_settings")]

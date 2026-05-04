@@ -11,6 +11,7 @@ public partial class CameraShake : Camera2D
 	private bool shakeEnabled = true;
 
 	private readonly RandomNumberGenerator random = new();
+	private SettingsManager settingsManager;
 	private Vector2 baseOffset;
 	private float shakeStrength;
 	private float shakeDuration;
@@ -21,6 +22,7 @@ public partial class CameraShake : Camera2D
 		EnsureTestCameraShakeInputAction();
 		Enabled = true;
 		MakeCurrent();
+		settingsManager = GetNodeOrNull<SettingsManager>("/root/SettingsManager");
 		baseOffset = Offset;
 		random.Randomize();
 	}
@@ -32,8 +34,10 @@ public partial class CameraShake : Camera2D
 			Shake(12f, 0.28f);
 		}
 
-		if (!shakeEnabled)
+		if (!CanShake())
 		{
+			shakeRemaining = 0f;
+			shakeStrength = 0f;
 			Offset = baseOffset;
 			return;
 		}
@@ -60,14 +64,20 @@ public partial class CameraShake : Camera2D
 
 	public void Shake(float strength, float duration)
 	{
-		if (!shakeEnabled)
+		if (!CanShake())
 		{
 			return;
 		}
 
-		shakeStrength = Mathf.Min(maxOffset, Mathf.Max(shakeStrength, strength));
+		float effectiveStrength = strength * (settingsManager?.CameraShakeStrengthMultiplier ?? 1f);
+		shakeStrength = Mathf.Min(maxOffset, Mathf.Max(shakeStrength, effectiveStrength));
 		shakeDuration = Mathf.Max(0.01f, duration);
 		shakeRemaining = Mathf.Max(shakeRemaining, duration);
+	}
+
+	private bool CanShake()
+	{
+		return shakeEnabled && (settingsManager?.CameraShakeEnabled ?? true);
 	}
 
 	private static void EnsureTestCameraShakeInputAction()
@@ -82,13 +92,22 @@ public partial class CameraShake : Camera2D
 			if (inputEvent is InputEventKey keyEvent &&
 			    (keyEvent.PhysicalKeycode == Key.F8 || keyEvent.Keycode == Key.F8))
 			{
+				InputMap.ActionEraseEvent(TestCameraShakeAction, inputEvent);
+			}
+		}
+
+		foreach (InputEvent inputEvent in InputMap.ActionGetEvents(TestCameraShakeAction))
+		{
+			if (inputEvent is InputEventKey keyEvent &&
+			    (keyEvent.PhysicalKeycode == Key.F6 || keyEvent.Keycode == Key.F6))
+			{
 				return;
 			}
 		}
 
 		InputMap.ActionAddEvent(TestCameraShakeAction, new InputEventKey
 		{
-			PhysicalKeycode = Key.F8
+			PhysicalKeycode = Key.F6
 		});
 	}
 }

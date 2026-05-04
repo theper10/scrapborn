@@ -12,6 +12,7 @@ public partial class HudController : CanvasLayer
 	private readonly Dictionary<BuildingType, Label> buildSlotStateLabels = new();
 
 	private ResourceManager resourceManager;
+	private SettingsManager settingsManager;
 	private RunManager runManager;
 	private PlayerController player;
 	private PlayerInteraction playerInteraction;
@@ -92,8 +93,15 @@ public partial class HudController : CanvasLayer
 
 		if (Input.IsActionJustPressed(ToggleDebugStatsAction))
 		{
-			isDebugStatsVisible = !isDebugStatsVisible;
-			UpdateDebugPanelVisibility();
+			if (settingsManager != null)
+			{
+				settingsManager.ToggleDebugStats();
+			}
+			else
+			{
+				isDebugStatsVisible = !isDebugStatsVisible;
+				UpdateDebugPanelVisibility();
+			}
 		}
 
 		RefreshTutorialHint();
@@ -110,6 +118,11 @@ public partial class HudController : CanvasLayer
 		if (resourceManager != null)
 		{
 			resourceManager.ResourcesChanged -= RefreshResources;
+		}
+
+		if (settingsManager != null)
+		{
+			settingsManager.SettingsChanged -= OnSettingsChanged;
 		}
 
 		if (runManager != null)
@@ -199,6 +212,17 @@ public partial class HudController : CanvasLayer
 
 	private void ConnectResourceManager()
 	{
+		settingsManager = GetNodeOrNull<SettingsManager>("/root/SettingsManager");
+		if (settingsManager != null)
+		{
+			settingsManager.SettingsChanged += OnSettingsChanged;
+			OnSettingsChanged();
+		}
+		else
+		{
+			GD.PushWarning("Hud could not find the SettingsManager autoload.");
+		}
+
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
 
 		if (resourceManager == null)
@@ -531,6 +555,17 @@ public partial class HudController : CanvasLayer
 		}
 	}
 
+	private void OnSettingsChanged()
+	{
+		if (settingsManager == null)
+		{
+			return;
+		}
+
+		isDebugStatsVisible = settingsManager.DebugStatsVisible;
+		UpdateDebugPanelVisibility();
+	}
+
 	private void UpdateDebugStats()
 	{
 		if (runManager == null)
@@ -698,7 +733,8 @@ public partial class HudController : CanvasLayer
 	private static void EnsureInputActions()
 	{
 		EnsureActionHasKey(DismissTutorialAction, Key.H);
-		EnsureActionHasKey(ToggleDebugStatsAction, Key.F9);
+		RemoveActionKey(ToggleDebugStatsAction, Key.F9);
+		EnsureActionHasKey(ToggleDebugStatsAction, Key.F10);
 	}
 
 	private static void EnsureActionHasKey(string action, Key key)
@@ -721,5 +757,22 @@ public partial class HudController : CanvasLayer
 		{
 			PhysicalKeycode = key
 		});
+	}
+
+	private static void RemoveActionKey(string action, Key key)
+	{
+		if (!InputMap.HasAction(action))
+		{
+			return;
+		}
+
+		foreach (InputEvent inputEvent in InputMap.ActionGetEvents(action))
+		{
+			if (inputEvent is InputEventKey keyEvent &&
+			    (keyEvent.PhysicalKeycode == key || keyEvent.Keycode == key))
+			{
+				InputMap.ActionEraseEvent(action, inputEvent);
+			}
+		}
 	}
 }

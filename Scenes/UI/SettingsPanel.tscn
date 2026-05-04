@@ -1,0 +1,75 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/SettingsPanelController.cs" id="1_settings"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.025, 0.032, 0.032, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.23, 0.22, 0.95)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="SettingsPanel" type="Control"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_settings")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.015, 0.018, 0.02, 0.78)
+
+[node name="Panel" type="PanelContainer" parent="Dim"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -245.0
+offset_top = -225.0
+offset_right = 245.0
+offset_bottom = 225.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Dim/Panel"]
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Dim/Panel/Margin"]
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Dim/Panel/Margin/VBox"]
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="FeedbackButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Feedback Intensity: Medium"
+
+[node name="CameraShakeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Camera Shake: On"
+
+[node name="CameraShakeStrengthButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Camera Shake Strength: 100%"
+
+[node name="DebugStatsButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Debug Stats: Off"
+
+[node name="FullscreenButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Display: Windowed"
+
+[node name="VSyncButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "VSync: On"
+
+[node name="CloseButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Back"

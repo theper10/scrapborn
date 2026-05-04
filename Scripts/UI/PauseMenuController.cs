@@ -9,8 +9,9 @@ public partial class PauseMenuController : CanvasLayer
 	private Button resumeButton;
 	private Button restartButton;
 	private Button mainMenuButton;
-	private Button feedbackButton;
+	private Button settingsButton;
 	private Button quitButton;
+	private SettingsPanelController settingsPanel;
 
 	public override void _Ready()
 	{
@@ -21,15 +22,15 @@ public partial class PauseMenuController : CanvasLayer
 		resumeButton = GetNode<Button>("Root/Panel/VBox/ResumeButton");
 		restartButton = GetNode<Button>("Root/Panel/VBox/RestartButton");
 		mainMenuButton = GetNode<Button>("Root/Panel/VBox/MainMenuButton");
-		feedbackButton = GetNode<Button>("Root/Panel/VBox/FeedbackButton");
+		settingsButton = GetNode<Button>("Root/Panel/VBox/SettingsButton");
 		quitButton = GetNode<Button>("Root/Panel/VBox/QuitButton");
+		settingsPanel = GetNode<SettingsPanelController>("SettingsPanel");
 
 		resumeButton.Pressed += Resume;
 		restartButton.Pressed += RestartRun;
 		mainMenuButton.Pressed += ReturnToMainMenu;
-		feedbackButton.Pressed += CycleFeedbackIntensity;
+		settingsButton.Pressed += OpenSettings;
 		quitButton.Pressed += QuitToDesktop;
-		UpdateFeedbackButtonLabel();
 		root.Visible = false;
 	}
 
@@ -50,9 +51,9 @@ public partial class PauseMenuController : CanvasLayer
 			mainMenuButton.Pressed -= ReturnToMainMenu;
 		}
 
-		if (feedbackButton != null)
+		if (settingsButton != null)
 		{
-			feedbackButton.Pressed -= CycleFeedbackIntensity;
+			settingsButton.Pressed -= OpenSettings;
 		}
 
 		if (quitButton != null)
@@ -65,6 +66,12 @@ public partial class PauseMenuController : CanvasLayer
 	{
 		if (!Input.IsActionJustPressed(PauseAction))
 		{
+			return;
+		}
+
+		if (settingsPanel?.Visible == true)
+		{
+			settingsPanel.Close();
 			return;
 		}
 
@@ -108,18 +115,9 @@ public partial class PauseMenuController : CanvasLayer
 		GetTree().Quit();
 	}
 
-	private void CycleFeedbackIntensity()
+	private void OpenSettings()
 	{
-		FeedbackEffects.CycleIntensity();
-		UpdateFeedbackButtonLabel();
-	}
-
-	private void UpdateFeedbackButtonLabel()
-	{
-		if (feedbackButton != null)
-		{
-			feedbackButton.Text = FeedbackEffects.GetIntensityLabel();
-		}
+		settingsPanel.Open();
 	}
 
 	private void SetPaused(bool paused)
@@ -128,7 +126,6 @@ public partial class PauseMenuController : CanvasLayer
 		root.Visible = paused;
 		if (paused)
 		{
-			UpdateFeedbackButtonLabel();
 			resumeButton.GrabFocus();
 		}
 	}
