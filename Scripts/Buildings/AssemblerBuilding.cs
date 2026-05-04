@@ -50,7 +50,8 @@ public partial class AssemblerBuilding : Building
 			return;
 		}
 
-		if (ResourceManager.GetAvailableSpace(ResourceType.Ammo) < ammoOutput)
+		int effectiveAmmoOutput = GetEffectiveAmmoOutput();
+		if (ResourceManager.GetAvailableSpace(ResourceType.Ammo) < effectiveAmmoOutput)
 		{
 			SetStatus(BuildingStatus.OutputFull);
 			FeedbackEffects.SpawnText(
@@ -85,7 +86,7 @@ public partial class AssemblerBuilding : Building
 		}
 
 		ResourceManager.Spend(cost);
-		int producedAmmo = ResourceManager.AddResource(ResourceType.Ammo, ammoOutput);
+		int producedAmmo = ResourceManager.AddResource(ResourceType.Ammo, effectiveAmmoOutput);
 		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordAmmoProduced(producedAmmo);
 		FeedbackEffects.SpawnText(
 			this,
@@ -124,13 +125,19 @@ public partial class AssemblerBuilding : Building
 	protected override string GetInspectionDetails()
 	{
 		return
-			$"Converts: {scrapInput} Scrap + {energyInput} Energy -> {ammoOutput} Ammo\n" +
+			$"Converts: {scrapInput} Scrap + {energyInput} Energy -> {GetEffectiveAmmoOutput()} Ammo\n" +
 			$"Interval: {GetEffectiveProductionInterval():0.##}s";
 	}
 
 	private float GetEffectiveProductionInterval()
 	{
-		float speedMultiplier = UpgradeManager?.AssemblerSpeedMultiplier ?? 1f;
+		float speedMultiplier = (UpgradeManager?.AssemblerSpeedMultiplier ?? 1f) *
+			(UpgradeManager?.ProductionSpeedMultiplier ?? 1f);
 		return productionInterval / speedMultiplier;
+	}
+
+	private int GetEffectiveAmmoOutput()
+	{
+		return Mathf.Max(1, ammoOutput + (UpgradeManager?.AssemblerAmmoOutputBonus ?? 0));
 	}
 }

@@ -31,6 +31,7 @@ public partial class PlayerInteraction : Area2D
 	private readonly List<ScrapDeposit> nearbyDeposits = new();
 	private ResourceManager resourceManager;
 	private RunManager runManager;
+	private UpgradeManager upgradeManager;
 	private Core core;
 	private double gatherCooldown;
 	private double repairCooldown;
@@ -47,6 +48,7 @@ public partial class PlayerInteraction : Area2D
 
 		resourceManager = GetNodeOrNull<ResourceManager>("/root/ResourceManager");
 		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
+		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
 		core = GetTree().Root.FindChild("Core", true, false) as Core;
 		if (resourceManager != null)
 		{
@@ -87,7 +89,7 @@ public partial class PlayerInteraction : Area2D
 			bool hasRepairTarget = GetClosestRepairTarget() != null;
 			if (TryRepairClosestTarget() || hasRepairTarget)
 			{
-				repairCooldown = repairInterval;
+				repairCooldown = GetEffectiveRepairInterval();
 			}
 		}
 
@@ -127,7 +129,7 @@ public partial class PlayerInteraction : Area2D
 
 		Dictionary<ResourceType, int> repairCost = new()
 		{
-			{ ResourceType.Scrap, repairScrapCost }
+			{ ResourceType.Scrap, GetEffectiveRepairCost() }
 		};
 
 		if (!resourceManager.CanSpend(repairCost) || !resourceManager.Spend(repairCost))
@@ -143,22 +145,23 @@ public partial class PlayerInteraction : Area2D
 			return false;
 		}
 
-		int repaired = RepairTarget(target, Math.Min(repairAmount, missingHealth));
+		int repairCostAmount = GetEffectiveRepairCost();
+		int repaired = RepairTarget(target, Math.Min(GetEffectiveRepairAmount(), missingHealth));
 		if (repaired <= 0)
 		{
-			resourceManager.AddResource(ResourceType.Scrap, repairScrapCost);
+			resourceManager.AddResource(ResourceType.Scrap, repairCostAmount);
 			return false;
 		}
 
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,
-			$"-{repairScrapCost} Scrap",
+			$"-{repairCostAmount} Scrap",
 			FeedbackEffects.SpendColor,
 			FeedbackCategory.Repair,
 			0.1f,
 			$"{GetInstanceId()}:repair-cost");
-		runManager?.RecordRepair(repairScrapCost, repaired);
+		runManager?.RecordRepair(repairCostAmount, repaired);
 		return true;
 	}
 
@@ -203,7 +206,7 @@ public partial class PlayerInteraction : Area2D
 			return false;
 		}
 
-		int amountToGather = Math.Min(gatherAmount, availableStorage);
+		int amountToGather = Math.Min(GetEffectiveGatherAmount(), availableStorage);
 		int gatheredAmount = deposit.Gather(amountToGather);
 
 		if (gatheredAmount <= 0)
@@ -313,7 +316,7 @@ public partial class PlayerInteraction : Area2D
 		{
 			if (Input.IsActionPressed(RepairAction) &&
 			    resourceManager != null &&
-			    resourceManager.GetAmount(ResourceType.Scrap) < repairScrapCost)
+			    resourceManager.GetAmount(ResourceType.Scrap) < GetEffectiveRepairCost())
 			{
 				SetHint("Need Scrap to repair", true);
 				return;
@@ -337,6 +340,30 @@ public partial class PlayerInteraction : Area2D
 		}
 
 		SetHint("Press E to gather Scrap", true);
+	}
+
+	private int GetEffectiveGatherAmount()
+	{
+		float multiplier = upgradeManager?.PlayerGatherAmountMultiplier ?? 1f;
+		return Mathf.Max(1, Mathf.RoundToInt(gatherAmount * multiplier));
+	}
+
+	private float GetEffectiveRepairInterval()
+	{
+		float multiplier = upgradeManager?.PlayerRepairSpeedMultiplier ?? 1f;
+		return repairInterval / multiplier;
+	}
+
+	private int GetEffectiveRepairAmount()
+	{
+		float multiplier = upgradeManager?.PlayerRepairEfficiencyMultiplier ?? 1f;
+		return Mathf.Max(1, Mathf.RoundToInt(repairAmount * multiplier));
+	}
+
+	private int GetEffectiveRepairCost()
+	{
+		float multiplier = upgradeManager?.RepairCostMultiplier ?? 1f;
+		return Mathf.Max(1, Mathf.CeilToInt(repairScrapCost * multiplier));
 	}
 
 	private void SetHint(string hintText, bool visible)

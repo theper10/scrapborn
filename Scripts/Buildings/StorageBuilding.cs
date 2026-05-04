@@ -13,11 +13,27 @@ public partial class StorageBuilding : Building
 	private int ammoMaxBonus = 50;
 
 	private bool hasAppliedBonus;
+	private int appliedScrapBonus;
+	private int appliedEnergyBonus;
+	private int appliedAmmoBonus;
 
 	public override void _Ready()
 	{
 		base._Ready();
+		if (UpgradeManager != null)
+		{
+			UpgradeManager.UpgradeApplied += OnUpgradeApplied;
+		}
+
 		ApplyStorageBonus();
+	}
+
+	public override void _ExitTree()
+	{
+		if (UpgradeManager != null)
+		{
+			UpgradeManager.UpgradeApplied -= OnUpgradeApplied;
+		}
 	}
 
 	private void ApplyStorageBonus()
@@ -28,11 +44,14 @@ public partial class StorageBuilding : Building
 		}
 
 		hasAppliedBonus = true;
+		appliedScrapBonus = GetEffectiveBonus(scrapMaxBonus);
+		appliedEnergyBonus = GetEffectiveBonus(energyMaxBonus);
+		appliedAmmoBonus = GetEffectiveBonus(ammoMaxBonus);
 		ResourceManager.AddMaxResources(new Dictionary<ResourceType, int>
 		{
-			{ ResourceType.Scrap, scrapMaxBonus },
-			{ ResourceType.Energy, energyMaxBonus },
-			{ ResourceType.Ammo, ammoMaxBonus }
+			{ ResourceType.Scrap, appliedScrapBonus },
+			{ ResourceType.Energy, appliedEnergyBonus },
+			{ ResourceType.Ammo, appliedAmmoBonus }
 		});
 		FeedbackEffects.SpawnText(
 			this,
@@ -48,6 +67,17 @@ public partial class StorageBuilding : Building
 
 	protected override void OnDestroyed()
 	{
+		RemoveStorageBonus();
+	}
+
+	protected override string GetInspectionDetails()
+	{
+		return
+			$"Capacity bonus: +{GetEffectiveBonus(scrapMaxBonus)} Scrap, +{GetEffectiveBonus(energyMaxBonus)} Energy, +{GetEffectiveBonus(ammoMaxBonus)} Ammo";
+	}
+
+	private void RemoveStorageBonus()
+	{
 		if (!hasAppliedBonus || ResourceManager == null)
 		{
 			return;
@@ -56,15 +86,29 @@ public partial class StorageBuilding : Building
 		hasAppliedBonus = false;
 		ResourceManager.AddMaxResources(new Dictionary<ResourceType, int>
 		{
-			{ ResourceType.Scrap, -scrapMaxBonus },
-			{ ResourceType.Energy, -energyMaxBonus },
-			{ ResourceType.Ammo, -ammoMaxBonus }
+			{ ResourceType.Scrap, -appliedScrapBonus },
+			{ ResourceType.Energy, -appliedEnergyBonus },
+			{ ResourceType.Ammo, -appliedAmmoBonus }
 		});
+		appliedScrapBonus = 0;
+		appliedEnergyBonus = 0;
+		appliedAmmoBonus = 0;
 	}
 
-	protected override string GetInspectionDetails()
+	private void OnUpgradeApplied(int upgradeType)
 	{
-		return
-			$"Capacity bonus: +{scrapMaxBonus} Scrap, +{energyMaxBonus} Energy, +{ammoMaxBonus} Ammo";
+		if ((UpgradeType)upgradeType != UpgradeType.StorageCapacityBonus || IsDestroyed || ResourceManager == null)
+		{
+			return;
+		}
+
+		RemoveStorageBonus();
+		ApplyStorageBonus();
+	}
+
+	private int GetEffectiveBonus(int baseBonus)
+	{
+		float multiplier = UpgradeManager?.StorageCapacityMultiplier ?? 1f;
+		return Mathf.Max(0, Mathf.RoundToInt(baseBonus * multiplier));
 	}
 }

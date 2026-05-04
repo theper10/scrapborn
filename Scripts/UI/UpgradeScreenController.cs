@@ -100,7 +100,10 @@ public partial class UpgradeScreenController : CanvasLayer
 
 			UpgradeDefinition upgrade = upgradeManager.CurrentChoices[index];
 			choiceButtons[index].Visible = true;
-			choiceButtons[index].Text = $"{index + 1}. {upgrade.DisplayName}\n{upgrade.Description}";
+			choiceButtons[index].Text =
+				$"{index + 1}. {upgrade.DisplayName}\n" +
+				$"{upgrade.Rarity} | {upgrade.Category}\n" +
+				upgrade.Description;
 		}
 	}
 

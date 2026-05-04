@@ -12,11 +12,11 @@ public partial class ObjectiveTracker : Node
 
 	private readonly string[] objectives =
 	{
-		"Gather Scrap",
-		"Build a Generator",
-		"Build an Assembler",
-		"Produce Ammo",
-		"Build a Turret",
+		"Gather Scrap from a deposit",
+		"Build a Generator for Energy",
+		"Build an Assembler for Ammo",
+		"Produce Ammo for Turrets",
+		"Build a Turret before Night",
 		"Survive Night 1",
 		"Choose an Upgrade",
 		"Survive until Victory"

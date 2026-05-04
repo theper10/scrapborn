@@ -33,7 +33,7 @@ public partial class DrillBuilding : ResourceProducerBuilding
 	{
 		return
 			$"Produces: {OutputType}\n" +
-			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(ProductionInterval)}\n" +
+			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(GetEffectiveProductionInterval())}\n" +
 			"Requires: near Scrap deposit";
 	}
 

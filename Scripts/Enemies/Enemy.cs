@@ -7,6 +7,9 @@ public partial class Enemy : CharacterBody2D
 	public delegate void DiedEventHandler(Enemy enemy);
 
 	[Export]
+	private EnemyType enemyType = EnemyType.Crawler;
+
+	[Export]
 	private int maxHealth = 30;
 
 	[Export]
@@ -31,6 +34,7 @@ public partial class Enemy : CharacterBody2D
 
 	public int CurrentHealth => currentHealth;
 	public int MaxHealth => maxHealth;
+	public EnemyType EnemyType => enemyType;
 
 	public override void _Ready()
 	{

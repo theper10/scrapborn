@@ -25,7 +25,7 @@ public partial class ResourceProducerBuilding : Building
 		}
 
 		productionTimer += delta;
-		if (productionTimer < productionInterval)
+		if (productionTimer < GetEffectiveProductionInterval())
 		{
 			return;
 		}
@@ -91,7 +91,13 @@ public partial class ResourceProducerBuilding : Building
 	{
 		return
 			$"Produces: {OutputType}\n" +
-			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(productionInterval)}";
+			$"Rate: +{GetEffectiveOutputAmount()} every {FormatSeconds(GetEffectiveProductionInterval())}";
+	}
+
+	protected float GetEffectiveProductionInterval()
+	{
+		float speedMultiplier = UpgradeManager?.ProductionSpeedMultiplier ?? 1f;
+		return productionInterval / speedMultiplier;
 	}
 
 	protected int GetEffectiveOutputAmount()

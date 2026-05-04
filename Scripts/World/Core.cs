@@ -10,9 +10,11 @@ public partial class Core : Node2D, IInspectable
 	private int maxHealth = 250;
 
 	private UpgradeManager upgradeManager;
+	private RunManager runManager;
 	private Line2D selectionHighlight;
 	private int baseMaxHealth;
 	private double damageFlashTimer;
+	private double regenCarry;
 
 	public string InspectableName => "Core";
 	public int CurrentHealth { get; private set; }
@@ -26,6 +28,7 @@ public partial class Core : Node2D, IInspectable
 		CreateSelectionHighlight();
 		baseMaxHealth = maxHealth;
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
 		if (upgradeManager != null)
 		{
 			upgradeManager.UpgradeApplied += OnUpgradeApplied;
@@ -46,6 +49,7 @@ public partial class Core : Node2D, IInspectable
 
 	public override void _Process(double delta)
 	{
+		UpdateDayRegen(delta);
 		UpdateDamageFlash(delta);
 	}
 
@@ -57,7 +61,8 @@ public partial class Core : Node2D, IInspectable
 		}
 
 		int previousHealth = CurrentHealth;
-		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		int adjustedAmount = Mathf.Max(1, Mathf.CeilToInt(amount * (upgradeManager?.CoreDamageTakenMultiplier ?? 1f)));
+		CurrentHealth = Math.Clamp(CurrentHealth - adjustedAmount, 0, maxHealth);
 		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.12;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
@@ -124,7 +129,8 @@ public partial class Core : Node2D, IInspectable
 
 	private void OnUpgradeApplied(int upgradeType)
 	{
-		if ((UpgradeType)upgradeType != UpgradeType.CoreMaxHealth)
+		UpgradeType appliedUpgrade = (UpgradeType)upgradeType;
+		if (appliedUpgrade is not (UpgradeType.CoreMaxHealth or UpgradeType.CoreMaxHealthLarge))
 		{
 			return;
 		}
@@ -132,6 +138,30 @@ public partial class Core : Node2D, IInspectable
 		int previousMaxHealth = maxHealth;
 		maxHealth = baseMaxHealth + (upgradeManager?.CoreMaxHealthBonus ?? 0);
 		CurrentHealth = Math.Clamp(CurrentHealth + maxHealth - previousMaxHealth, 0, maxHealth);
+		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
+	}
+
+	private void UpdateDayRegen(double delta)
+	{
+		float regenPerSecond = upgradeManager?.CoreDayRegenPerSecond ?? 0f;
+		if (regenPerSecond <= 0f ||
+		    runManager?.CurrentPhase != RunPhase.Day ||
+		    CurrentHealth <= 0 ||
+		    CurrentHealth >= maxHealth)
+		{
+			regenCarry = 0.0;
+			return;
+		}
+
+		regenCarry += delta * regenPerSecond;
+		int healAmount = Mathf.FloorToInt((float)regenCarry);
+		if (healAmount <= 0)
+		{
+			return;
+		}
+
+		regenCarry -= healAmount;
+		CurrentHealth = Math.Clamp(CurrentHealth + healAmount, 0, maxHealth);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
 	}
 

@@ -78,7 +78,8 @@ public partial class PlayerController : CharacterBody2D
 		}
 
 		int previousHealth = CurrentHealth;
-		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		int adjustedAmount = Mathf.Max(1, Mathf.CeilToInt(amount * (upgradeManager?.PlayerDamageTakenMultiplier ?? 1f)));
+		CurrentHealth = Math.Clamp(CurrentHealth - adjustedAmount, 0, maxHealth);
 		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.1;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
@@ -106,7 +107,8 @@ public partial class PlayerController : CharacterBody2D
 
 	private void OnUpgradeApplied(int upgradeType)
 	{
-		if ((UpgradeType)upgradeType != UpgradeType.PlayerMaxHealth)
+		UpgradeType appliedUpgrade = (UpgradeType)upgradeType;
+		if (appliedUpgrade is not (UpgradeType.PlayerMaxHealth or UpgradeType.PlayerMaxHealthLarge))
 		{
 			return;
 		}

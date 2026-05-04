@@ -16,12 +16,14 @@ public partial class TurretBuilding : Building
 	private int ammoCost = 1;
 
 	private Line2D shotLine;
+	private readonly RandomNumberGenerator random = new();
 	private double fireTimer;
 	private double shotFlashTimer;
 
 	public override void _Ready()
 	{
 		base._Ready();
+		random.Randomize();
 		shotLine = GetNodeOrNull<Line2D>("ShotLine");
 		if (shotLine != null)
 		{
@@ -79,13 +81,13 @@ public partial class TurretBuilding : Building
 			{ ResourceType.Ammo, ammoCost }
 		};
 
-		if (!ResourceManager.Spend(shotCost))
+		if (ShouldConsumeAmmo() && !ResourceManager.Spend(shotCost))
 		{
 			SetStatus(BuildingStatus.MissingInput);
 			return;
 		}
 
-		target.TakeDamage(GetEffectiveDamage());
+		target.TakeDamage(GetEffectiveDamage(target));
 		ShowShot(target.GlobalPosition);
 		PulseFeedbackVisual(new Color(1f, 0.95f, 0.42f, 1f), 0.12f);
 		fireTimer = GetEffectiveFireInterval();
@@ -95,7 +97,8 @@ public partial class TurretBuilding : Building
 	private Enemy FindNearestEnemyInRange()
 	{
 		Enemy nearestEnemy = null;
-		float nearestDistanceSquared = range * range;
+		float effectiveRange = GetEffectiveRange();
+		float nearestDistanceSquared = effectiveRange * effectiveRange;
 
 		foreach (Node node in GetTree().GetNodesInGroup("Enemies"))
 		{
@@ -150,13 +153,18 @@ public partial class TurretBuilding : Building
 		return
 			$"Damage: {GetEffectiveDamage()}\n" +
 			$"Fire interval: {GetEffectiveFireInterval():0.##}s\n" +
-			$"Range: {range:0} px\n" +
+			$"Range: {GetEffectiveRange():0} px\n" +
 			$"Ammo cost: {ammoCost}";
 	}
 
-	private int GetEffectiveDamage()
+	private int GetEffectiveDamage(Enemy target = null)
 	{
 		float damageMultiplier = UpgradeManager?.TurretDamageMultiplier ?? 1f;
+		if (target?.EnemyType == EnemyType.Tank)
+		{
+			damageMultiplier *= UpgradeManager?.TurretTankDamageMultiplier ?? 1f;
+		}
+
 		return Mathf.Max(1, Mathf.RoundToInt(damage * damageMultiplier));
 	}
 
@@ -164,5 +172,17 @@ public partial class TurretBuilding : Building
 	{
 		float fireRateMultiplier = UpgradeManager?.TurretFireRateMultiplier ?? 1f;
 		return fireInterval / fireRateMultiplier;
+	}
+
+	private float GetEffectiveRange()
+	{
+		float rangeMultiplier = UpgradeManager?.TurretRangeMultiplier ?? 1f;
+		return range * rangeMultiplier;
+	}
+
+	private bool ShouldConsumeAmmo()
+	{
+		float saveChance = UpgradeManager?.TurretAmmoSaveChance ?? 0f;
+		return saveChance <= 0f || random.Randf() >= saveChance;
 	}
 }

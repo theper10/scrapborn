@@ -20,6 +20,15 @@ polygon = PackedVector2Array(0, -15, 15, 0, 0, 15, -15, 0)
 color = Color(1, 0.88, 0.4, 1)
 polygon = PackedVector2Array(-5, -4, 5, -4, 5, 4, -5, 4)
 
+[node name="TypeLabel" type="Label" parent="."]
+offset_left = -5.0
+offset_top = -8.0
+offset_right = 5.0
+offset_bottom = 8.0
+text = "C"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_crawler")
 

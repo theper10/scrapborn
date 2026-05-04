@@ -1,5 +1,9 @@
+using System.Collections.Generic;
+
 public sealed class RunStats
 {
+	private readonly List<string> chosenUpgradeNames = new();
+
 	public int EnemiesKilled { get; private set; }
 	public int BuildingsPlaced { get; private set; }
 	public int ScrapGatheredManually { get; private set; }
@@ -11,9 +15,11 @@ public sealed class RunStats
 	public int BuildingsDestroyed { get; private set; }
 	public int ScrapSpentOnRepairs { get; private set; }
 	public int HealthRepaired { get; private set; }
+	public IReadOnlyList<string> ChosenUpgradeNames => chosenUpgradeNames;
 
 	public void Reset()
 	{
+		chosenUpgradeNames.Clear();
 		EnemiesKilled = 0;
 		BuildingsPlaced = 0;
 		ScrapGatheredManually = 0;
@@ -57,9 +63,13 @@ public sealed class RunStats
 		AmmoProduced += amount;
 	}
 
-	public void RecordUpgradeChosen()
+	public void RecordUpgradeChosen(string upgradeName = "")
 	{
 		UpgradesChosen++;
+		if (!string.IsNullOrWhiteSpace(upgradeName))
+		{
+			chosenUpgradeNames.Add(upgradeName);
+		}
 	}
 
 	public void RecordNightSurvived()

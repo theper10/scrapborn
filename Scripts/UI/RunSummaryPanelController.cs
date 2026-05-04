@@ -55,6 +55,10 @@ public partial class RunSummaryPanelController : CanvasLayer
 
 	private static string BuildStatsText(RunStats stats)
 	{
+		string upgradeNames = stats.ChosenUpgradeNames.Count > 0
+			? $"\nChosen upgrades: {string.Join(", ", stats.ChosenUpgradeNames)}"
+			: string.Empty;
+
 		return
 			$"Nights survived: {stats.NightsSurvived}\n" +
 			$"Enemies killed: {stats.EnemiesKilled}\n" +
@@ -66,7 +70,9 @@ public partial class RunSummaryPanelController : CanvasLayer
 			$"Ammo produced: {stats.AmmoProduced}\n" +
 			$"Scrap spent on repairs: {stats.ScrapSpentOnRepairs}\n" +
 			$"Health repaired: {stats.HealthRepaired}\n" +
-			$"Upgrades chosen: {stats.UpgradesChosen}\n\n" +
+			$"Upgrades chosen: {stats.UpgradesChosen}" +
+			upgradeNames +
+			"\n\n" +
 			"Press R to restart\n" +
 			"Press M for Main Menu";
 	}

@@ -7,6 +7,7 @@ radius = 11.0
 
 [node name="FastEnemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")
+enemyType = 1
 maxHealth = 20
 moveSpeed = 120.0
 contactDamage = 3
@@ -19,6 +20,15 @@ polygon = PackedVector2Array(0, -17, 13, 11, 0, 5, -13, 11)
 [node name="Eye" type="Polygon2D" parent="."]
 color = Color(1, 0.95, 0.5, 1)
 polygon = PackedVector2Array(-4, -5, 4, -5, 4, 2, -4, 2)
+
+[node name="TypeLabel" type="Label" parent="."]
+offset_left = -5.0
+offset_top = -8.0
+offset_right = 5.0
+offset_bottom = 8.0
+text = "F"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_fast")

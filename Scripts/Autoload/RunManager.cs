@@ -22,9 +22,9 @@ public partial class RunManager : Node
 	{
 		{ 1, BuildWave(4, 0, 0) },
 		{ 2, BuildWave(8, 2, 0) },
-		{ 3, BuildWave(12, 4, 0) },
-		{ 4, BuildWave(12, 6, 3) },
-		{ 5, BuildWave(20, 8, 5) }
+		{ 3, BuildWave(10, 5, 1) },
+		{ 4, BuildWave(10, 6, 3) },
+		{ 5, BuildNightFiveWave() }
 	};
 
 	private EnemySpawner enemySpawner;
@@ -41,6 +41,7 @@ public partial class RunManager : Node
 	private int activeEnemies;
 	private string defeatReason = "Core destroyed.";
 	private bool isRunSceneBound;
+	private bool finalPushAnnounced;
 	private readonly RunStats stats = new();
 
 	[Export]
@@ -214,6 +215,7 @@ public partial class RunManager : Node
 		currentWave = waveDefinitions[Mathf.Clamp(night, 1, waveDefinitions.Count)];
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
+		finalPushAnnounced = false;
 		EmitRunState();
 		EmitRunAnnouncement($"Night {night}", "Enemies incoming");
 		FeedbackEffects.ShakeCamera(this, 2f, 0.15f);
@@ -233,6 +235,14 @@ public partial class RunManager : Node
 		if (enemySpawner == null || spawnedThisNight >= currentWave.Length)
 		{
 			return;
+		}
+
+		if (currentNight == GetMaxNight() &&
+		    !finalPushAnnounced &&
+		    spawnedThisNight >= Math.Max(0, currentWave.Length - 2))
+		{
+			finalPushAnnounced = true;
+			EmitRunAnnouncement("Final Push", "Last Tanks inbound");
 		}
 
 		enemySpawner.SpawnEnemy(currentWave[spawnedThisNight]);
@@ -279,7 +289,8 @@ public partial class RunManager : Node
 		}
 
 		GetTree().Paused = false;
-		stats.RecordUpgradeChosen();
+		UpgradeDefinition upgrade = UpgradeDefinitions.Get((UpgradeType)upgradeType);
+		stats.RecordUpgradeChosen(upgrade.DisplayName);
 		StartDay(pendingDay);
 	}
 
@@ -364,6 +375,7 @@ public partial class RunManager : Node
 		spawnedThisNight = 0;
 		activeEnemies = 0;
 		defeatReason = "Core destroyed.";
+		finalPushAnnounced = false;
 		stats.Reset();
 		EmitRunState();
 	}
@@ -483,6 +495,30 @@ public partial class RunManager : Node
 			enemies.Add(EnemyType.Tank);
 		}
 
+		return enemies.ToArray();
+	}
+
+	private static EnemyType[] BuildNightFiveWave()
+	{
+		List<EnemyType> enemies = new();
+
+		for (int index = 0; index < 14; index++)
+		{
+			enemies.Add(EnemyType.Crawler);
+		}
+
+		for (int index = 0; index < 8; index++)
+		{
+			enemies.Add(EnemyType.Fast);
+		}
+
+		for (int index = 0; index < 3; index++)
+		{
+			enemies.Add(EnemyType.Tank);
+		}
+
+		enemies.Add(EnemyType.Tank);
+		enemies.Add(EnemyType.Tank);
 		return enemies.ToArray();
 	}
 

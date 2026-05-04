@@ -256,7 +256,7 @@ public partial class BuildingPlacer : Node2D
 
 	private void OnUpgradeApplied(int upgradeType)
 	{
-		if ((UpgradeType)upgradeType == UpgradeType.BuildingCostDiscount)
+		if ((UpgradeType)upgradeType is UpgradeType.BuildingCostDiscount or UpgradeType.BuildingCostDiscountSmall)
 		{
 			EmitBuildState();
 			UpdatePreview();
