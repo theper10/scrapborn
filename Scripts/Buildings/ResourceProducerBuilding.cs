@@ -44,17 +44,46 @@ public partial class ResourceProducerBuilding : Building
 		if (!CanProduce())
 		{
 			SetStatus(BuildingStatus.InvalidPlacement);
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				BuildingType == BuildingType.Drill ? "Needs Scrap Deposit" : "Invalid",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				1.5f,
+				$"{GetInstanceId()}:invalid");
 			return;
 		}
 
 		if (ResourceManager.IsFull(OutputType))
 		{
 			SetStatus(BuildingStatus.OutputFull);
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				"Full",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				1.5f,
+				$"{GetInstanceId()}:full");
 			return;
 		}
 
 		int producedAmount = ResourceManager.AddResource(OutputType, GetEffectiveOutputAmount());
 		RecordProducedAmount(producedAmount);
+		if (producedAmount > 0)
+		{
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				$"+{producedAmount} {OutputType}",
+				GetResourceFeedbackColor(OutputType),
+				FeedbackCategory.Production,
+				0.05f,
+				$"{GetInstanceId()}:produce");
+			PulseFeedbackVisual(GetResourcePulseColor(OutputType));
+		}
+
 		SetStatus(BuildingStatus.Working);
 	}
 
@@ -103,5 +132,27 @@ public partial class ResourceProducerBuilding : Building
 		{
 			runManager.RecordEnergyProduced(amount);
 		}
+	}
+
+	private static Color GetResourceFeedbackColor(ResourceType resourceType)
+	{
+		return resourceType switch
+		{
+			ResourceType.Scrap => FeedbackEffects.ScrapGainColor,
+			ResourceType.Energy => FeedbackEffects.EnergyGainColor,
+			ResourceType.Ammo => FeedbackEffects.AmmoGainColor,
+			_ => Colors.White
+		};
+	}
+
+	private static Color GetResourcePulseColor(ResourceType resourceType)
+	{
+		return resourceType switch
+		{
+			ResourceType.Scrap => new Color(1f, 0.86f, 0.48f, 1f),
+			ResourceType.Energy => new Color(0.42f, 0.92f, 1f, 1f),
+			ResourceType.Ammo => new Color(0.78f, 1f, 0.52f, 1f),
+			_ => Colors.White
+		};
 	}
 }

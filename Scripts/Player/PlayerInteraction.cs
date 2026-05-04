@@ -132,15 +132,32 @@ public partial class PlayerInteraction : Area2D
 
 		if (!resourceManager.CanSpend(repairCost) || !resourceManager.Spend(repairCost))
 		{
+			FeedbackEffects.SpawnText(
+				this,
+				target.GlobalPosition,
+				"Need Scrap",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				1.0f,
+				$"{target.GetInstanceId()}:need-scrap");
 			return false;
 		}
 
 		int repaired = RepairTarget(target, Math.Min(repairAmount, missingHealth));
 		if (repaired <= 0)
 		{
+			resourceManager.AddResource(ResourceType.Scrap, repairScrapCost);
 			return false;
 		}
 
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			$"-{repairScrapCost} Scrap",
+			FeedbackEffects.SpendColor,
+			FeedbackCategory.Repair,
+			0.1f,
+			$"{GetInstanceId()}:repair-cost");
 		runManager?.RecordRepair(repairScrapCost, repaired);
 		return true;
 	}
@@ -196,6 +213,14 @@ public partial class PlayerInteraction : Area2D
 		}
 
 		resourceManager.AddResource(ResourceType.Scrap, gatheredAmount);
+		FeedbackEffects.SpawnText(
+			this,
+			deposit.GlobalPosition,
+			$"+{gatheredAmount} Scrap",
+			FeedbackEffects.ScrapGainColor,
+			FeedbackCategory.Gathering,
+			0.1f,
+			$"{GetInstanceId()}:gather");
 		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordScrapGatheredManually(gatheredAmount);
 		RefreshHint();
 		return true;

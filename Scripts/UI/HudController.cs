@@ -391,6 +391,7 @@ public partial class HudController : CanvasLayer
 	{
 		announcementTitleLabel.Text = titleText;
 		announcementDetailLabel.Text = detailText;
+		announcementPanel.Modulate = Colors.White;
 		announcementPanel.Visible = true;
 		announcementTimer = AnnouncementDuration;
 	}
@@ -649,9 +650,17 @@ public partial class HudController : CanvasLayer
 		if (announcementTimer > 0.0)
 		{
 			announcementTimer -= delta;
+			float alpha = Mathf.Clamp((float)(announcementTimer / 0.45), 0f, 1f);
+			if (announcementTimer > AnnouncementDuration - 0.18)
+			{
+				alpha = Mathf.Clamp((float)((AnnouncementDuration - announcementTimer) / 0.18), 0f, 1f);
+			}
+
+			announcementPanel.Modulate = new Color(1f, 1f, 1f, alpha);
 			if (announcementTimer <= 0.0)
 			{
 				announcementPanel.Visible = false;
+				announcementPanel.Modulate = Colors.White;
 			}
 		}
 	}

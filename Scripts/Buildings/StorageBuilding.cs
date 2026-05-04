@@ -34,6 +34,15 @@ public partial class StorageBuilding : Building
 			{ ResourceType.Energy, energyMaxBonus },
 			{ ResourceType.Ammo, ammoMaxBonus }
 		});
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			"+Capacity",
+			FeedbackEffects.EnergyGainColor,
+			FeedbackCategory.Status,
+			0.2f,
+			$"{GetInstanceId()}:capacity");
+		PulseFeedbackVisual(new Color(0.48f, 0.92f, 1f, 1f));
 		SetStatus(BuildingStatus.Idle);
 	}
 

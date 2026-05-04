@@ -27,6 +27,7 @@ public partial class Enemy : CharacterBody2D
 	private double attackTimer;
 	private double hitFlashTimer;
 	private int currentHealth;
+	private bool isDying;
 
 	public int CurrentHealth => currentHealth;
 	public int MaxHealth => maxHealth;
@@ -45,7 +46,7 @@ public partial class Enemy : CharacterBody2D
 	{
 		UpdateHitFlash(delta);
 
-		if (currentHealth <= 0)
+		if (currentHealth <= 0 || isDying)
 		{
 			Velocity = Vector2.Zero;
 			return;
@@ -72,21 +73,57 @@ public partial class Enemy : CharacterBody2D
 
 	public void TakeDamage(int amount)
 	{
-		if (amount <= 0 || currentHealth <= 0)
+		if (amount <= 0 || currentHealth <= 0 || isDying)
 		{
 			return;
 		}
 
+		int previousHealth = currentHealth;
 		currentHealth = Math.Clamp(currentHealth - amount, 0, maxHealth);
+		int damageTaken = previousHealth - currentHealth;
 		hitFlashTimer = 0.08;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			$"-{damageTaken}",
+			FeedbackEffects.DamageColor,
+			FeedbackCategory.CombatDamage,
+			0.05f,
+			$"{GetInstanceId()}:hit");
 		UpdateHealthBar();
 
 		if (currentHealth <= 0)
 		{
-			EmitSignal(SignalName.Died, this);
-			QueueFree();
+			Die();
 		}
+	}
+
+	private void Die()
+	{
+		isDying = true;
+		Velocity = Vector2.Zero;
+		CollisionLayer = 0;
+		CollisionMask = 0;
+		if (healthBar != null)
+		{
+			healthBar.Visible = false;
+		}
+
+		EmitSignal(SignalName.Died, this);
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			"Destroyed",
+			FeedbackEffects.AmmoGainColor,
+			FeedbackCategory.CombatDamage,
+			0.05f,
+			$"{GetInstanceId()}:dead");
+
+		Tween tween = CreateTween();
+		tween.TweenProperty(this, "scale", Scale * 1.35f, 0.14);
+		tween.Parallel().TweenProperty(this, "modulate", new Color(1f, 0.9f, 0.45f, 0f), 0.14);
+		tween.TweenCallback(Callable.From(QueueFree));
 	}
 
 	private Node2D FindAttackTarget()

@@ -15,6 +15,14 @@ public partial class DrillBuilding : ResourceProducerBuilding
 		if (!IsNearValidScrapDeposit())
 		{
 			SetStatus(BuildingStatus.InvalidPlacement);
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				"Needs Scrap Deposit",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				1.5f,
+				$"{GetInstanceId()}:invalid");
 			return;
 		}
 

@@ -58,6 +58,14 @@ public partial class TurretBuilding : Building
 		if (ResourceManager == null || ResourceManager.GetAmount(ResourceType.Ammo) < ammoCost)
 		{
 			SetStatus(BuildingStatus.MissingInput);
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				"No Ammo",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				1.2f,
+				$"{GetInstanceId()}:no-ammo");
 			return;
 		}
 
@@ -79,6 +87,7 @@ public partial class TurretBuilding : Building
 
 		target.TakeDamage(GetEffectiveDamage());
 		ShowShot(target.GlobalPosition);
+		PulseFeedbackVisual(new Color(1f, 0.95f, 0.42f, 1f), 0.12f);
 		fireTimer = GetEffectiveFireInterval();
 		SetStatus(BuildingStatus.Working);
 	}

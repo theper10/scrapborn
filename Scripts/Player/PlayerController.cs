@@ -77,9 +77,20 @@ public partial class PlayerController : CharacterBody2D
 			return;
 		}
 
+		int previousHealth = CurrentHealth;
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.1;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			$"-{damageTaken} HP",
+			FeedbackEffects.DamageColor,
+			FeedbackCategory.Critical,
+			0.08f,
+			$"{GetInstanceId()}:damage");
+		FeedbackEffects.ShakeCamera(this, 5f, 0.18f);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
 
 		if (CurrentHealth <= 0)

@@ -56,9 +56,20 @@ public partial class Core : Node2D, IInspectable
 			return;
 		}
 
+		int previousHealth = CurrentHealth;
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.12;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			$"-{damageTaken} HP",
+			FeedbackEffects.DamageColor,
+			FeedbackCategory.Critical,
+			0.08f,
+			$"{GetInstanceId()}:damage");
+		FeedbackEffects.ShakeCamera(this, 8f, 0.25f);
 		EmitSignal(SignalName.HealthChanged, CurrentHealth, maxHealth);
 	}
 
@@ -76,6 +87,14 @@ public partial class Core : Node2D, IInspectable
 		if (repaired > 0)
 		{
 			PulseRepairVisual();
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				$"Repaired +{repaired}",
+				FeedbackEffects.RepairColor,
+				FeedbackCategory.Repair,
+				0.08f,
+				$"{GetInstanceId()}:repair");
 		}
 
 		return repaired;

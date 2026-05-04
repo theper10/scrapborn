@@ -147,7 +147,7 @@ public partial class RunManager : Node
 		}
 
 		EmitRunState();
-		EmitRunAnnouncement("Day 1", "Gather scrap and prepare");
+		EmitRunAnnouncement("Day 1", "Gather, build, prepare");
 	}
 
 	private void UpdateDay(double delta)
@@ -204,7 +204,7 @@ public partial class RunManager : Node
 		spawnedThisNight = 0;
 		spawnTimer = 0f;
 		EmitRunState();
-		EmitRunAnnouncement($"Day {day}", "Build, repair, and prepare");
+		EmitRunAnnouncement($"Day {day}", "Gather, build, prepare");
 	}
 
 	private void StartNight(int night)
@@ -216,6 +216,7 @@ public partial class RunManager : Node
 		spawnTimer = 0f;
 		EmitRunState();
 		EmitRunAnnouncement($"Night {night}", "Enemies incoming");
+		FeedbackEffects.ShakeCamera(this, 2f, 0.15f);
 	}
 
 	private void StartUpgradeSelection(int nextDay)
@@ -287,6 +288,7 @@ public partial class RunManager : Node
 		currentPhase = RunPhase.Victory;
 		ClearEnemies();
 		EmitRunState();
+		EmitRunAnnouncement("Victory", "You survived the final night");
 	}
 
 	public void EnterDefeat(string reason)
@@ -305,6 +307,7 @@ public partial class RunManager : Node
 		currentPhase = RunPhase.Defeat;
 		ClearEnemies();
 		EmitRunState();
+		EmitRunAnnouncement("Defeat", defeatReason);
 	}
 
 	private void ClearEnemies()

@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://Scripts/Systems/SelectionController.cs" id="9_selection"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/InspectionPanel.tscn" id="10_inspection"]
 [ext_resource type="Script" path="res://Scripts/Systems/ObjectiveTracker.cs" id="11_objectives"]
+[ext_resource type="Script" path="res://Scripts/Systems/FloatingTextSpawner.cs" id="12_floating_text_spawner"]
 
 [node name="Main" type="Node2D" unique_id=1293990018]
 script = ExtResource("1_main")
@@ -28,6 +29,9 @@ script = ExtResource("9_selection")
 
 [node name="ObjectiveTracker" type="Node" parent="."]
 script = ExtResource("11_objectives")
+
+[node name="FloatingTextSpawner" type="CanvasLayer" parent="."]
+script = ExtResource("12_floating_text_spawner")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

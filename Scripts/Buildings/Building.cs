@@ -61,13 +61,27 @@ public partial class Building : Node2D, IInspectable
 			return;
 		}
 
+		int previousHealth = CurrentHealth;
 		CurrentHealth = Math.Clamp(CurrentHealth - amount, 0, maxHealth);
+		int damageTaken = previousHealth - CurrentHealth;
 		UpdateHealthVisuals();
 		UpdateStatusVisuals();
+		FeedbackEffects.SpawnText(
+			this,
+			GlobalPosition,
+			$"-{damageTaken} HP",
+			FeedbackEffects.DamageColor,
+			FeedbackCategory.CombatDamage,
+			0.08f,
+			$"{GetInstanceId()}:damage");
 
 		if (CurrentHealth <= 0)
 		{
 			DestroyBuilding();
+		}
+		else
+		{
+			PulseDamageVisual();
 		}
 	}
 
@@ -86,6 +100,14 @@ public partial class Building : Node2D, IInspectable
 		if (repaired > 0)
 		{
 			PulseRepairVisual();
+			FeedbackEffects.SpawnText(
+				this,
+				GlobalPosition,
+				$"Repaired +{repaired}",
+				FeedbackEffects.RepairColor,
+				FeedbackCategory.Repair,
+				0.08f,
+				$"{GetInstanceId()}:repair");
 		}
 
 		return repaired;
@@ -141,6 +163,19 @@ public partial class Building : Node2D, IInspectable
 		return string.Empty;
 	}
 
+	protected void PulseFeedbackVisual(Color pulseColor, float duration = 0.18f)
+	{
+		if (IsDestroyed)
+		{
+			return;
+		}
+
+		Color targetColor = GetHealthVisualColor();
+		Modulate = pulseColor;
+		Tween tween = CreateTween();
+		tween.TweenProperty(this, "modulate", targetColor, duration);
+	}
+
 	private void DestroyBuilding()
 	{
 		IsDestroyed = true;
@@ -148,6 +183,7 @@ public partial class Building : Node2D, IInspectable
 		SetSelected(false);
 		SetStatus(BuildingStatus.Destroyed);
 		UpdateHealthVisuals();
+		FeedbackEffects.ShakeCamera(this, 6f, 0.22f);
 		EmitSignal(SignalName.Destroyed, this);
 	}
 
@@ -197,15 +233,12 @@ public partial class Building : Node2D, IInspectable
 
 	private void PulseRepairVisual()
 	{
-		if (IsDestroyed)
-		{
-			return;
-		}
+		PulseFeedbackVisual(new Color(0.55f, 1f, 0.65f, 1f));
+	}
 
-		Color targetColor = GetHealthVisualColor();
-		Modulate = new Color(0.55f, 1f, 0.65f, 1f);
-		Tween tween = CreateTween();
-		tween.TweenProperty(this, "modulate", targetColor, 0.18);
+	private void PulseDamageVisual()
+	{
+		PulseFeedbackVisual(new Color(1f, 0.32f, 0.28f, 1f), 0.14f);
 	}
 
 	private void UpdateStatusVisuals()
@@ -255,7 +288,7 @@ public partial class Building : Node2D, IInspectable
 			BuildingStatus.Working => "Working",
 			BuildingStatus.MissingInput => "Missing Input",
 			BuildingStatus.OutputFull => "Output Full",
-			BuildingStatus.InvalidPlacement => "Invalid",
+			BuildingStatus.InvalidPlacement => "Invalid Placement",
 			BuildingStatus.Destroyed => "Destroyed",
 			_ => "Idle"
 		};
