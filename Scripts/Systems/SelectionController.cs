@@ -35,7 +35,7 @@ public partial class SelectionController : Node2D
 		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
 	}
 
-	public override void _UnhandledInput(InputEvent inputEvent)
+	public override void _Input(InputEvent inputEvent)
 	{
 		if (inputEvent is not InputEventMouseButton mouseButton ||
 		    !mouseButton.Pressed ||
