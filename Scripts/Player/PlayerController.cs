@@ -83,6 +83,7 @@ public partial class PlayerController : CharacterBody2D
 		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.1;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.PlaySfx(this, "player_damage");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,

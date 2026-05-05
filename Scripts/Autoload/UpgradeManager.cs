@@ -103,6 +103,7 @@ public partial class UpgradeManager : Node
 		ApplyUpgrade(upgradeType);
 		chosenUpgradeNames.Add(upgrade.DisplayName);
 		currentChoices.Clear();
+		FeedbackEffects.PlaySfx(this, "upgrade_selected");
 		EmitSignal(SignalName.UpgradeChoicesChanged, false);
 		EmitSignal(SignalName.UpgradeApplied, (int)upgradeType);
 	}

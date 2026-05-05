@@ -148,7 +148,8 @@ public partial class RunManager : Node
 		}
 
 		EmitRunState();
-		EmitRunAnnouncement("Day 1", "Gather, build, prepare");
+		EmitRunAnnouncement("Day 1", "Gather scrap and build your first factory.");
+		FeedbackEffects.PlaySfx(this, "day_start");
 	}
 
 	private void UpdateDay(double delta)
@@ -179,6 +180,7 @@ public partial class RunManager : Node
 		{
 			stats.RecordNightSurvived();
 			EmitRunAnnouncement("Wave cleared", $"Night {currentNight} survived");
+			FeedbackEffects.PlaySfx(this, "wave_cleared");
 
 			if (currentNight >= GetMaxNight())
 			{
@@ -206,6 +208,7 @@ public partial class RunManager : Node
 		spawnTimer = 0f;
 		EmitRunState();
 		EmitRunAnnouncement($"Day {day}", "Gather, build, prepare");
+		FeedbackEffects.PlaySfx(this, "day_start");
 	}
 
 	private void StartNight(int night)
@@ -218,6 +221,7 @@ public partial class RunManager : Node
 		finalPushAnnounced = false;
 		EmitRunState();
 		EmitRunAnnouncement($"Night {night}", "Enemies incoming");
+		FeedbackEffects.PlaySfx(this, "night_start");
 		FeedbackEffects.ShakeCamera(this, 2f, 0.15f);
 	}
 
@@ -300,6 +304,7 @@ public partial class RunManager : Node
 		ClearEnemies();
 		EmitRunState();
 		EmitRunAnnouncement("Victory", "You survived the final night");
+		FeedbackEffects.PlaySfx(this, "victory");
 	}
 
 	public void EnterDefeat(string reason)
@@ -319,6 +324,7 @@ public partial class RunManager : Node
 		ClearEnemies();
 		EmitRunState();
 		EmitRunAnnouncement("Defeat", defeatReason);
+		FeedbackEffects.PlaySfx(this, "defeat");
 	}
 
 	private void ClearEnemies()

@@ -58,6 +58,7 @@ public partial class ResourceProducerBuilding : Building
 		if (ResourceManager.IsFull(OutputType))
 		{
 			SetStatus(BuildingStatus.OutputFull);
+			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -73,6 +74,7 @@ public partial class ResourceProducerBuilding : Building
 		RecordProducedAmount(producedAmount);
 		if (producedAmount > 0)
 		{
+			FeedbackEffects.PlaySfx(this, GetProductionSfxName());
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -85,6 +87,16 @@ public partial class ResourceProducerBuilding : Building
 		}
 
 		SetStatus(BuildingStatus.Working);
+	}
+
+	private string GetProductionSfxName()
+	{
+		return BuildingType switch
+		{
+			BuildingType.Drill => "drill",
+			BuildingType.Generator => "generator",
+			_ => "generator"
+		};
 	}
 
 	protected override string GetInspectionDetails()

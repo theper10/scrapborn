@@ -134,6 +134,7 @@ public partial class PlayerInteraction : Area2D
 
 		if (!resourceManager.CanSpend(repairCost) || !resourceManager.Spend(repairCost))
 		{
+			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				target.GlobalPosition,
@@ -161,6 +162,7 @@ public partial class PlayerInteraction : Area2D
 			FeedbackCategory.Repair,
 			0.1f,
 			$"{GetInstanceId()}:repair-cost");
+		FeedbackEffects.PlaySfx(this, "repair");
 		runManager?.RecordRepair(repairCostAmount, repaired);
 		return true;
 	}
@@ -216,6 +218,7 @@ public partial class PlayerInteraction : Area2D
 		}
 
 		resourceManager.AddResource(ResourceType.Scrap, gatheredAmount);
+		FeedbackEffects.PlaySfx(this, "gather");
 		FeedbackEffects.SpawnText(
 			this,
 			deposit.GlobalPosition,

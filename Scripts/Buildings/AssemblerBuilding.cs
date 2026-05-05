@@ -54,6 +54,7 @@ public partial class AssemblerBuilding : Building
 		if (ResourceManager.GetAvailableSpace(ResourceType.Ammo) < effectiveAmmoOutput)
 		{
 			SetStatus(BuildingStatus.OutputFull);
+			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -74,6 +75,7 @@ public partial class AssemblerBuilding : Building
 		if (!ResourceManager.CanSpend(cost))
 		{
 			SetStatus(BuildingStatus.MissingInput);
+			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -88,6 +90,7 @@ public partial class AssemblerBuilding : Building
 		ResourceManager.Spend(cost);
 		int producedAmmo = ResourceManager.AddResource(ResourceType.Ammo, effectiveAmmoOutput);
 		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordAmmoProduced(producedAmmo);
+		FeedbackEffects.PlaySfx(this, "assembler");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,

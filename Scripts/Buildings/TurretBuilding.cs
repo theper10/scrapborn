@@ -60,6 +60,7 @@ public partial class TurretBuilding : Building
 		if (ResourceManager == null || ResourceManager.GetAmount(ResourceType.Ammo) < ammoCost)
 		{
 			SetStatus(BuildingStatus.MissingInput);
+			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -88,6 +89,7 @@ public partial class TurretBuilding : Building
 		}
 
 		target.TakeDamage(GetEffectiveDamage(target));
+		FeedbackEffects.PlaySfx(this, "turret_fire");
 		ShowShot(target.GlobalPosition);
 		PulseFeedbackVisual(new Color(1f, 0.95f, 0.42f, 1f), 0.12f);
 		fireTimer = GetEffectiveFireInterval();

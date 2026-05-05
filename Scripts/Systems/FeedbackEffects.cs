@@ -60,6 +60,11 @@ public static class FeedbackEffects
 		GetCameraShake(source)?.Shake(strength, duration);
 	}
 
+	public static void PlaySfx(Node source, string sfxName)
+	{
+		source?.GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx(sfxName);
+	}
+
 	public static void CycleIntensity()
 	{
 		CurrentIntensity = CurrentIntensity switch

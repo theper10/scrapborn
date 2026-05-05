@@ -34,9 +34,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -245.0
-offset_top = -225.0
+offset_top = -295.0
 offset_right = 245.0
-offset_bottom = 225.0
+offset_bottom = 295.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Margin" type="MarginContainer" parent="Dim/Panel"]
@@ -70,6 +70,18 @@ text = "Display: Windowed"
 
 [node name="VSyncButton" type="Button" parent="Dim/Panel/Margin/VBox"]
 text = "VSync: On"
+
+[node name="MasterVolumeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Master Volume: 75%"
+
+[node name="SfxVolumeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "SFX Volume: 75%"
+
+[node name="MusicVolumeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Music Volume: 50%"
+
+[node name="MuteAudioButton" type="Button" parent="Dim/Panel/Margin/VBox"]
+text = "Mute Audio: Off"
 
 [node name="CloseButton" type="Button" parent="Dim/Panel/Margin/VBox"]
 text = "Back"

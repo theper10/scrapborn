@@ -241,6 +241,7 @@ public partial class Building : Node2D, IInspectable
 		SetSelected(false);
 		SetStatus(BuildingStatus.Destroyed);
 		UpdateHealthVisuals();
+		FeedbackEffects.PlaySfx(this, "building_destroyed");
 		FeedbackEffects.ShakeCamera(this, 6f, 0.22f);
 		EmitSignal(SignalName.Destroyed, this);
 	}

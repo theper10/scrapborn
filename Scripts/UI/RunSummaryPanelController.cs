@@ -5,6 +5,7 @@ public partial class RunSummaryPanelController : CanvasLayer
 	private RunManager runManager;
 	private Control root;
 	private Label titleLabel;
+	private Label flavorLabel;
 	private Label statsLabel;
 
 	public override void _Ready()
@@ -26,6 +27,7 @@ public partial class RunSummaryPanelController : CanvasLayer
 	{
 		root = GetNode<Control>("Root");
 		titleLabel = GetNode<Label>("Root/Panel/VBox/TitleLabel");
+		flavorLabel = GetNodeOrNull<Label>("Root/Panel/VBox/FlavorLabel");
 		statsLabel = GetNode<Label>("Root/Panel/VBox/StatsLabel");
 	}
 
@@ -50,6 +52,13 @@ public partial class RunSummaryPanelController : CanvasLayer
 		}
 
 		titleLabel.Text = phaseText;
+		if (flavorLabel != null)
+		{
+			flavorLabel.Text = phaseText == "Victory"
+				? "The factory survives... for now."
+				: "The machines overran the core.";
+		}
+
 		statsLabel.Text = BuildStatsText(runManager.Stats);
 	}
 

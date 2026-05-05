@@ -147,6 +147,7 @@ public partial class BuildingPlacer : Node2D
 		Vector2I targetCell = GetMouseCell();
 		if (!CanPlaceAt(targetCell, out string placementError))
 		{
+			FeedbackEffects.PlaySfx(this, "error");
 			SetStatus(placementError);
 			return;
 		}
@@ -155,12 +156,14 @@ public partial class BuildingPlacer : Node2D
 		Dictionary<ResourceType, int> cost = GetSelectedBuildingCost();
 		if (!buildingScenes.TryGetValue(selectedBuildingType, out PackedScene scene) || scene == null)
 		{
+			FeedbackEffects.PlaySfx(this, "error");
 			SetStatus("Invalid placement");
 			return;
 		}
 
 		if (resourceManager == null || !resourceManager.Spend(cost))
 		{
+			FeedbackEffects.PlaySfx(this, "error");
 			SetStatus("Not enough resources");
 			return;
 		}
@@ -172,6 +175,7 @@ public partial class BuildingPlacer : Node2D
 		buildingsRoot.AddChild(building);
 		placedBuildings[targetCell] = building;
 		runManager?.RecordBuildingPlaced();
+		FeedbackEffects.PlaySfx(this, "building_placed");
 		SetStatus($"{definition.DisplayName} placed");
 	}
 
@@ -205,6 +209,7 @@ public partial class BuildingPlacer : Node2D
 		selectionController?.ClearSelection();
 		building.Sell();
 		runManager?.RecordBuildingSold(actualRefund);
+		FeedbackEffects.PlaySfx(this, lostRefund ? "error" : "building_sold");
 
 		string refundText = actualRefund.Count > 0
 			? $"+{BuildingDefinitions.FormatCost(actualRefund)}"

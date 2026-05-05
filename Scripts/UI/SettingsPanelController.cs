@@ -6,24 +6,34 @@ public partial class SettingsPanelController : Control
 	public delegate void ClosedEventHandler();
 
 	private SettingsManager settingsManager;
+	private AudioManager audioManager;
 	private Button feedbackButton;
 	private Button cameraShakeButton;
 	private Button cameraShakeStrengthButton;
 	private Button debugStatsButton;
 	private Button fullscreenButton;
 	private Button vsyncButton;
+	private Button masterVolumeButton;
+	private Button sfxVolumeButton;
+	private Button musicVolumeButton;
+	private Button muteAudioButton;
 	private Button closeButton;
 
 	public override void _Ready()
 	{
 		ProcessMode = ProcessModeEnum.Always;
 		settingsManager = GetNodeOrNull<SettingsManager>("/root/SettingsManager");
+		audioManager = GetNodeOrNull<AudioManager>("/root/AudioManager");
 		feedbackButton = GetNode<Button>("Dim/Panel/Margin/VBox/FeedbackButton");
 		cameraShakeButton = GetNode<Button>("Dim/Panel/Margin/VBox/CameraShakeButton");
 		cameraShakeStrengthButton = GetNode<Button>("Dim/Panel/Margin/VBox/CameraShakeStrengthButton");
 		debugStatsButton = GetNode<Button>("Dim/Panel/Margin/VBox/DebugStatsButton");
 		fullscreenButton = GetNode<Button>("Dim/Panel/Margin/VBox/FullscreenButton");
 		vsyncButton = GetNode<Button>("Dim/Panel/Margin/VBox/VSyncButton");
+		masterVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/MasterVolumeButton");
+		sfxVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/SfxVolumeButton");
+		musicVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/MusicVolumeButton");
+		muteAudioButton = GetNode<Button>("Dim/Panel/Margin/VBox/MuteAudioButton");
 		closeButton = GetNode<Button>("Dim/Panel/Margin/VBox/CloseButton");
 
 		feedbackButton.Pressed += CycleFeedbackIntensity;
@@ -32,6 +42,10 @@ public partial class SettingsPanelController : Control
 		debugStatsButton.Pressed += ToggleDebugStats;
 		fullscreenButton.Pressed += ToggleFullscreen;
 		vsyncButton.Pressed += ToggleVSync;
+		masterVolumeButton.Pressed += CycleMasterVolume;
+		sfxVolumeButton.Pressed += CycleSfxVolume;
+		musicVolumeButton.Pressed += CycleMusicVolume;
+		muteAudioButton.Pressed += ToggleMuteAudio;
 		closeButton.Pressed += Close;
 
 		if (settingsManager != null)
@@ -41,6 +55,15 @@ public partial class SettingsPanelController : Control
 		else
 		{
 			GD.PushWarning("SettingsPanel could not find the SettingsManager autoload.");
+		}
+
+		if (audioManager != null)
+		{
+			audioManager.AudioSettingsChanged += RefreshLabels;
+		}
+		else
+		{
+			GD.PushWarning("SettingsPanel could not find the AudioManager autoload.");
 		}
 
 		Visible = false;
@@ -79,6 +102,26 @@ public partial class SettingsPanelController : Control
 			vsyncButton.Pressed -= ToggleVSync;
 		}
 
+		if (masterVolumeButton != null)
+		{
+			masterVolumeButton.Pressed -= CycleMasterVolume;
+		}
+
+		if (sfxVolumeButton != null)
+		{
+			sfxVolumeButton.Pressed -= CycleSfxVolume;
+		}
+
+		if (musicVolumeButton != null)
+		{
+			musicVolumeButton.Pressed -= CycleMusicVolume;
+		}
+
+		if (muteAudioButton != null)
+		{
+			muteAudioButton.Pressed -= ToggleMuteAudio;
+		}
+
 		if (closeButton != null)
 		{
 			closeButton.Pressed -= Close;
@@ -87,6 +130,11 @@ public partial class SettingsPanelController : Control
 		if (settingsManager != null)
 		{
 			settingsManager.SettingsChanged -= RefreshLabels;
+		}
+
+		if (audioManager != null)
+		{
+			audioManager.AudioSettingsChanged -= RefreshLabels;
 		}
 	}
 
@@ -133,6 +181,26 @@ public partial class SettingsPanelController : Control
 		settingsManager?.ToggleVSync();
 	}
 
+	private void CycleMasterVolume()
+	{
+		audioManager?.CycleMasterVolume();
+	}
+
+	private void CycleSfxVolume()
+	{
+		audioManager?.CycleSfxVolume();
+	}
+
+	private void CycleMusicVolume()
+	{
+		audioManager?.CycleMusicVolume();
+	}
+
+	private void ToggleMuteAudio()
+	{
+		audioManager?.ToggleMute();
+	}
+
 	private void RefreshLabels()
 	{
 		if (settingsManager == null)
@@ -143,6 +211,10 @@ public partial class SettingsPanelController : Control
 			debugStatsButton.Text = "Debug Stats: Off";
 			fullscreenButton.Text = "Display: Windowed";
 			vsyncButton.Text = "VSync: Project Default";
+			masterVolumeButton.Text = "Master Volume: 75%";
+			sfxVolumeButton.Text = "SFX Volume: 75%";
+			musicVolumeButton.Text = "Music Volume: 50%";
+			muteAudioButton.Text = "Mute Audio: Off";
 			return;
 		}
 
@@ -152,5 +224,9 @@ public partial class SettingsPanelController : Control
 		debugStatsButton.Text = settingsManager.GetDebugStatsLabel();
 		fullscreenButton.Text = settingsManager.GetFullscreenLabel();
 		vsyncButton.Text = settingsManager.GetVSyncLabel();
+		masterVolumeButton.Text = audioManager?.GetMasterVolumeLabel() ?? "Master Volume: 75%";
+		sfxVolumeButton.Text = audioManager?.GetSfxVolumeLabel() ?? "SFX Volume: 75%";
+		musicVolumeButton.Text = audioManager?.GetMusicVolumeLabel() ?? "Music Volume: 50%";
+		muteAudioButton.Text = audioManager?.GetMuteLabel() ?? "Mute Audio: Off";
 	}
 }

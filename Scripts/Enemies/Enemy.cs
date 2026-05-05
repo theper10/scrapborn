@@ -87,6 +87,7 @@ public partial class Enemy : CharacterBody2D
 		int damageTaken = previousHealth - currentHealth;
 		hitFlashTimer = 0.08;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.PlaySfx(this, "enemy_hit");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,
@@ -115,6 +116,7 @@ public partial class Enemy : CharacterBody2D
 		}
 
 		EmitSignal(SignalName.Died, this);
+		FeedbackEffects.PlaySfx(this, "enemy_death");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,

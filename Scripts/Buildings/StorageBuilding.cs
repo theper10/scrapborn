@@ -53,6 +53,7 @@ public partial class StorageBuilding : Building
 			{ ResourceType.Energy, appliedEnergyBonus },
 			{ ResourceType.Ammo, appliedAmmoBonus }
 		});
+		FeedbackEffects.PlaySfx(this, "storage");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,

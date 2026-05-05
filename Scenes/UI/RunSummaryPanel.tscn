@@ -34,6 +34,12 @@ theme_override_constants/separation = 10
 [node name="TitleLabel" type="Label" parent="Root/Panel/VBox"]
 text = "Victory"
 horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+
+[node name="FlavorLabel" type="Label" parent="Root/Panel/VBox"]
+text = "The factory survives... for now."
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="StatsLabel" type="Label" parent="Root/Panel/VBox"]
 text = "Nights survived: 0"

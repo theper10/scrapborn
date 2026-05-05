@@ -66,6 +66,7 @@ public partial class Core : Node2D, IInspectable
 		int damageTaken = previousHealth - CurrentHealth;
 		damageFlashTimer = 0.12;
 		Modulate = new Color(1f, 0.35f, 0.35f, 1f);
+		FeedbackEffects.PlaySfx(this, "core_damage");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,
