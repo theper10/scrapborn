@@ -36,7 +36,6 @@ public partial class DrillBuilding : ResourceProducerBuilding
 		if (ResourceManager.IsFull(ResourceType.Scrap))
 		{
 			SetStatus(BuildingStatus.OutputFull);
-			FeedbackEffects.PlaySfx(this, "error");
 			FeedbackEffects.SpawnText(
 				this,
 				GlobalPosition,
@@ -64,7 +63,6 @@ public partial class DrillBuilding : ResourceProducerBuilding
 		}
 
 		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordScrapProducedByDrill(producedAmount);
-		FeedbackEffects.PlaySfx(this, "drill");
 		FeedbackEffects.SpawnText(
 			this,
 			GlobalPosition,

@@ -77,9 +77,6 @@ text = "Master Volume: 75%"
 [node name="SfxVolumeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
 text = "SFX Volume: 75%"
 
-[node name="MusicVolumeButton" type="Button" parent="Dim/Panel/Margin/VBox"]
-text = "Music Volume: 50%"
-
 [node name="MuteAudioButton" type="Button" parent="Dim/Panel/Margin/VBox"]
 text = "Mute Audio: Off"
 

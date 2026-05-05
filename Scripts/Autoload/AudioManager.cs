@@ -9,7 +9,6 @@ public partial class AudioManager : Node
 
 	private const int MixRate = 44100;
 	private const float SfxBufferLength = 0.12f;
-	private const float MusicBufferLength = 0.25f;
 	private const int MaxActiveTones = 16;
 
 	private static readonly float[] VolumeSteps = { 0f, 0.25f, 0.5f, 0.75f, 1f };
@@ -19,19 +18,15 @@ public partial class AudioManager : Node
 	private readonly List<ActiveTone> activeTones = new();
 	private readonly RandomNumberGenerator random = new();
 
+	private AudioStreamPlayer sfxPlayer;
 	private AudioStreamGeneratorPlayback sfxPlayback;
-	private AudioStreamGeneratorPlayback musicPlayback;
 	private int masterVolumeIndex = 3;
 	private int sfxVolumeIndex = 3;
-	private int musicVolumeIndex = 2;
 	private bool muted;
 	private double timeSeconds;
-	private float musicPhaseA;
-	private float musicPhaseB;
 
 	public float MasterVolume => VolumeSteps[masterVolumeIndex];
 	public float SfxVolume => VolumeSteps[sfxVolumeIndex];
-	public float MusicVolume => VolumeSteps[musicVolumeIndex];
 	public bool IsMuted => muted;
 
 	public override void _Ready()
@@ -39,14 +34,14 @@ public partial class AudioManager : Node
 		ProcessMode = ProcessModeEnum.Always;
 		random.Randomize();
 		RegisterSfxDefinitions();
-		CreateGeneratorPlayers();
+		CreateSfxPlayer();
 	}
 
 	public override void _Process(double delta)
 	{
 		timeSeconds += delta;
+		EnsureSfxPlayback();
 		FillSfxBuffer();
-		FillMusicBuffer();
 	}
 
 	public void PlaySfx(string name)
@@ -87,12 +82,6 @@ public partial class AudioManager : Node
 		EmitSignal(SignalName.AudioSettingsChanged);
 	}
 
-	public void SetMusicVolume(float value)
-	{
-		musicVolumeIndex = GetClosestVolumeIndex(value);
-		EmitSignal(SignalName.AudioSettingsChanged);
-	}
-
 	public void SetMuted(bool isMuted)
 	{
 		if (muted == isMuted)
@@ -121,12 +110,6 @@ public partial class AudioManager : Node
 		EmitSignal(SignalName.AudioSettingsChanged);
 	}
 
-	public void CycleMusicVolume()
-	{
-		musicVolumeIndex = (musicVolumeIndex + 1) % VolumeSteps.Length;
-		EmitSignal(SignalName.AudioSettingsChanged);
-	}
-
 	public string GetMasterVolumeLabel()
 	{
 		return $"Master Volume: {Mathf.RoundToInt(MasterVolume * 100f)}%";
@@ -137,21 +120,18 @@ public partial class AudioManager : Node
 		return $"SFX Volume: {Mathf.RoundToInt(SfxVolume * 100f)}%";
 	}
 
-	public string GetMusicVolumeLabel()
-	{
-		return $"Music Volume: {Mathf.RoundToInt(MusicVolume * 100f)}%";
-	}
-
 	public string GetMuteLabel()
 	{
 		return $"Mute Audio: {(muted ? "On" : "Off")}";
 	}
 
-	private void CreateGeneratorPlayers()
+	private void CreateSfxPlayer()
 	{
-		AudioStreamPlayer sfxPlayer = new()
+		sfxPlayer = new AudioStreamPlayer
 		{
 			Name = "GeneratedSfxPlayer",
+			ProcessMode = ProcessModeEnum.Always,
+			Bus = "Master",
 			Stream = new AudioStreamGenerator
 			{
 				MixRate = MixRate,
@@ -161,19 +141,19 @@ public partial class AudioManager : Node
 		AddChild(sfxPlayer);
 		sfxPlayer.Play();
 		sfxPlayback = sfxPlayer.GetStreamPlayback() as AudioStreamGeneratorPlayback;
+	}
 
-		AudioStreamPlayer musicPlayer = new()
+	private void EnsureSfxPlayback()
+	{
+		if (sfxPlayer != null)
 		{
-			Name = "GeneratedAmbiencePlayer",
-			Stream = new AudioStreamGenerator
+			if (!sfxPlayer.Playing)
 			{
-				MixRate = MixRate,
-				BufferLength = MusicBufferLength
+				sfxPlayer.Play();
 			}
-		};
-		AddChild(musicPlayer);
-		musicPlayer.Play();
-		musicPlayback = musicPlayer.GetStreamPlayback() as AudioStreamGeneratorPlayback;
+
+			sfxPlayback ??= sfxPlayer.GetStreamPlayback() as AudioStreamGeneratorPlayback;
+		}
 	}
 
 	private void FillSfxBuffer()
@@ -214,25 +194,6 @@ public partial class AudioManager : Node
 		}
 	}
 
-	private void FillMusicBuffer()
-	{
-		if (musicPlayback == null)
-		{
-			return;
-		}
-
-		int framesAvailable = musicPlayback.GetFramesAvailable();
-		float effectiveVolume = muted ? 0f : MasterVolume * MusicVolume;
-		float frameTime = 1f / MixRate;
-		for (int frame = 0; frame < framesAvailable; frame++)
-		{
-			musicPhaseA += Mathf.Tau * 55f * frameTime;
-			musicPhaseB += Mathf.Tau * 82.5f * frameTime;
-			float sample = (Mathf.Sin(musicPhaseA) * 0.025f + Mathf.Sin(musicPhaseB) * 0.012f) * effectiveVolume;
-			musicPlayback.PushFrame(new Vector2(sample, sample));
-		}
-	}
-
 	private void RegisterSfxDefinitions()
 	{
 		sfxDefinitions["gather"] = new SfxDefinition(740f, 0.06f, 0.18f, 0.04f, 80f);
@@ -240,12 +201,8 @@ public partial class AudioManager : Node
 		sfxDefinitions["error"] = new SfxDefinition(145f, 0.09f, 0.22f, 0.25f, -40f);
 		sfxDefinitions["building_placed"] = new SfxDefinition(300f, 0.11f, 0.22f, 0.05f, 240f);
 		sfxDefinitions["building_sold"] = new SfxDefinition(390f, 0.09f, 0.2f, 0.08f, -80f);
-		sfxDefinitions["drill"] = new SfxDefinition(180f, 0.06f, 0.12f, 0.6f, -20f, true);
-		sfxDefinitions["generator"] = new SfxDefinition(420f, 0.08f, 0.13f, 0.6f, 120f);
-		sfxDefinitions["assembler"] = new SfxDefinition(610f, 0.08f, 0.16f, 0.45f, -160f);
-		sfxDefinitions["storage"] = new SfxDefinition(480f, 0.12f, 0.18f, 0.08f, 140f);
-		sfxDefinitions["turret_fire"] = new SfxDefinition(880f, 0.035f, 0.16f, 0.04f, -280f);
-		sfxDefinitions["enemy_hit"] = new SfxDefinition(260f, 0.045f, 0.11f, 0.04f, -90f, true);
+		sfxDefinitions["turret_fire"] = new SfxDefinition(880f, 0.035f, 0.16f, 0.08f, -280f);
+		sfxDefinitions["enemy_hit"] = new SfxDefinition(260f, 0.045f, 0.11f, 0.07f, -90f, true);
 		sfxDefinitions["enemy_death"] = new SfxDefinition(170f, 0.14f, 0.18f, 0.05f, -90f, true);
 		sfxDefinitions["player_damage"] = new SfxDefinition(120f, 0.13f, 0.25f, 0.08f, -40f, true);
 		sfxDefinitions["core_damage"] = new SfxDefinition(95f, 0.18f, 0.28f, 0.12f, -30f, true);

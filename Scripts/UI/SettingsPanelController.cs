@@ -15,7 +15,6 @@ public partial class SettingsPanelController : Control
 	private Button vsyncButton;
 	private Button masterVolumeButton;
 	private Button sfxVolumeButton;
-	private Button musicVolumeButton;
 	private Button muteAudioButton;
 	private Button closeButton;
 
@@ -32,7 +31,6 @@ public partial class SettingsPanelController : Control
 		vsyncButton = GetNode<Button>("Dim/Panel/Margin/VBox/VSyncButton");
 		masterVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/MasterVolumeButton");
 		sfxVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/SfxVolumeButton");
-		musicVolumeButton = GetNode<Button>("Dim/Panel/Margin/VBox/MusicVolumeButton");
 		muteAudioButton = GetNode<Button>("Dim/Panel/Margin/VBox/MuteAudioButton");
 		closeButton = GetNode<Button>("Dim/Panel/Margin/VBox/CloseButton");
 
@@ -44,7 +42,6 @@ public partial class SettingsPanelController : Control
 		vsyncButton.Pressed += ToggleVSync;
 		masterVolumeButton.Pressed += CycleMasterVolume;
 		sfxVolumeButton.Pressed += CycleSfxVolume;
-		musicVolumeButton.Pressed += CycleMusicVolume;
 		muteAudioButton.Pressed += ToggleMuteAudio;
 		closeButton.Pressed += Close;
 
@@ -110,11 +107,6 @@ public partial class SettingsPanelController : Control
 		if (sfxVolumeButton != null)
 		{
 			sfxVolumeButton.Pressed -= CycleSfxVolume;
-		}
-
-		if (musicVolumeButton != null)
-		{
-			musicVolumeButton.Pressed -= CycleMusicVolume;
 		}
 
 		if (muteAudioButton != null)
@@ -191,11 +183,6 @@ public partial class SettingsPanelController : Control
 		audioManager?.CycleSfxVolume();
 	}
 
-	private void CycleMusicVolume()
-	{
-		audioManager?.CycleMusicVolume();
-	}
-
 	private void ToggleMuteAudio()
 	{
 		audioManager?.ToggleMute();
@@ -213,7 +200,6 @@ public partial class SettingsPanelController : Control
 			vsyncButton.Text = "VSync: Project Default";
 			masterVolumeButton.Text = "Master Volume: 75%";
 			sfxVolumeButton.Text = "SFX Volume: 75%";
-			musicVolumeButton.Text = "Music Volume: 50%";
 			muteAudioButton.Text = "Mute Audio: Off";
 			return;
 		}
@@ -226,7 +212,6 @@ public partial class SettingsPanelController : Control
 		vsyncButton.Text = settingsManager.GetVSyncLabel();
 		masterVolumeButton.Text = audioManager?.GetMasterVolumeLabel() ?? "Master Volume: 75%";
 		sfxVolumeButton.Text = audioManager?.GetSfxVolumeLabel() ?? "SFX Volume: 75%";
-		musicVolumeButton.Text = audioManager?.GetMusicVolumeLabel() ?? "Music Volume: 50%";
 		muteAudioButton.Text = audioManager?.GetMuteLabel() ?? "Mute Audio: Off";
 	}
 }
