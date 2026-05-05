@@ -366,7 +366,7 @@ public partial class HudController : CanvasLayer
 	{
 		currentInteractionHintText = hintText;
 		currentInteractionHintVisible = isVisible;
-		if (isVisible && (hintText == "Need Scrap to repair" || hintText == "Scrap storage full"))
+		if (isVisible && (hintText == "Need Scrap to repair" || hintText.StartsWith("Scrap storage full")))
 		{
 			ShowTemporaryMessage(hintText);
 		}
@@ -577,9 +577,10 @@ public partial class HudController : CanvasLayer
 		RunStats stats = runManager.Stats;
 		runStatsLabel.Text =
 			$"Kills: {stats.EnemiesKilled}\n" +
-			$"Buildings: {stats.BuildingsPlaced} | Lost: {stats.BuildingsDestroyed}\n" +
-			$"Manual Scrap: {stats.ScrapGatheredManually}\n" +
-			$"Drill Scrap: {stats.ScrapProducedByDrills}\n" +
+			$"Buildings: {stats.BuildingsPlaced} | Sold: {stats.BuildingsSold} | Lost: {stats.BuildingsDestroyed}\n" +
+			$"Manual Scrap: {stats.ScrapGatheredManually} | Drill Scrap: {stats.ScrapProducedByDrills}\n" +
+			$"Deposits depleted: {stats.DepositsDepleted}\n" +
+			$"Refunds: {stats.ScrapRefunded}S {stats.EnergyRefunded}E {stats.AmmoRefunded}A\n" +
 			$"Energy: {stats.EnergyProduced} | Ammo: {stats.AmmoProduced}\n" +
 			$"Repairs: {stats.HealthRepaired} HP / {stats.ScrapSpentOnRepairs} Scrap\n" +
 			$"Upgrades: {stats.UpgradesChosen} | Nights: {stats.NightsSurvived}";

@@ -1,10 +1,13 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Building : Node2D, IInspectable
 {
 	[Signal]
 	public delegate void DestroyedEventHandler(Building building);
+
+	public const float RefundRate = 0.8f;
 
 	[Export]
 	public BuildingType BuildingType { get; set; }
@@ -17,6 +20,7 @@ public partial class Building : Node2D, IInspectable
 	private Line2D selectionHighlight;
 	private ResourceManager resourceManager;
 	private UpgradeManager upgradeManager;
+	private readonly Dictionary<ResourceType, int> purchaseCost = new();
 	private BuildingStatus status = BuildingStatus.Idle;
 
 	public string DisplayName => BuildingDefinitions.Get(BuildingType).DisplayName;
@@ -28,6 +32,7 @@ public partial class Building : Node2D, IInspectable
 	public bool NeedsRepair => !IsDestroyed && CurrentHealth < maxHealth;
 	public bool IsSelectable => !IsDestroyed && Visible;
 	public Vector2I GridCell { get; private set; } = new(int.MinValue, int.MinValue);
+	public IReadOnlyDictionary<ResourceType, int> PurchaseCost => purchaseCost;
 	protected ResourceManager ResourceManager => resourceManager;
 	protected UpgradeManager UpgradeManager => upgradeManager;
 
@@ -52,6 +57,24 @@ public partial class Building : Node2D, IInspectable
 	public void InitializePlacement(Vector2I gridCell)
 	{
 		GridCell = gridCell;
+	}
+
+	public void InitializePlacement(Vector2I gridCell, Dictionary<ResourceType, int> actualPurchaseCost)
+	{
+		InitializePlacement(gridCell);
+		purchaseCost.Clear();
+		if (actualPurchaseCost == null)
+		{
+			return;
+		}
+
+		foreach (KeyValuePair<ResourceType, int> cost in actualPurchaseCost)
+		{
+			if (cost.Value > 0)
+			{
+				purchaseCost[cost.Key] = cost.Value;
+			}
+		}
 	}
 
 	public void TakeDamage(int amount)
@@ -121,16 +144,47 @@ public partial class Building : Node2D, IInspectable
 		}
 	}
 
+	public Dictionary<ResourceType, int> GetRefundCost()
+	{
+		Dictionary<ResourceType, int> refund = new();
+		foreach (KeyValuePair<ResourceType, int> cost in purchaseCost)
+		{
+			int amount = Mathf.FloorToInt(cost.Value * RefundRate);
+			if (amount > 0)
+			{
+				refund[cost.Key] = amount;
+			}
+		}
+
+		return refund;
+	}
+
+	public void Sell()
+	{
+		if (IsDestroyed)
+		{
+			return;
+		}
+
+		OnSold();
+		SetSelected(false);
+		QueueFree();
+	}
+
 	public string GetInspectionText()
 	{
 		string details = GetInspectionDetails();
 		string repairHint = NeedsRepair ? "\nRepair: Hold F nearby to repair" : string.Empty;
+		string sellHint = purchaseCost.Count > 0
+			? $"\nSell: Press X\nRefund: {BuildingDefinitions.FormatCost(GetRefundCost())}"
+			: string.Empty;
 		return
 			$"Type: {BuildingType}\n" +
 			$"HP: {CurrentHealth} / {maxHealth}\n" +
 			$"Status: {GetDisplayStatus()}" +
 			(string.IsNullOrEmpty(details) ? string.Empty : $"\n{details}") +
-			repairHint;
+			repairHint +
+			sellHint;
 	}
 
 	public string GetHoverText()
@@ -155,6 +209,10 @@ public partial class Building : Node2D, IInspectable
 	}
 
 	protected virtual void OnDestroyed()
+	{
+	}
+
+	protected virtual void OnSold()
 	{
 	}
 

@@ -70,6 +70,11 @@ public partial class StorageBuilding : Building
 		RemoveStorageBonus();
 	}
 
+	protected override void OnSold()
+	{
+		RemoveStorageBonus();
+	}
+
 	protected override string GetInspectionDetails()
 	{
 		return

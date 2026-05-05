@@ -14,6 +14,9 @@ public partial class SelectionController : Node2D
 	[Export]
 	private float coreSelectionRadius = 48f;
 
+	[Export]
+	private float depositSelectionRadius = 34f;
+
 	private BuildingPlacer buildingPlacer;
 	private RunManager runManager;
 	private IInspectable selectedInspectable;
@@ -112,6 +115,14 @@ public partial class SelectionController : Node2D
 			if (node is Building building)
 			{
 				TryUseCandidate(building, worldPosition, buildingSelectionRadius, ref closestNode, ref closestDistanceSquared);
+			}
+		}
+
+		foreach (Node node in GetTree().GetNodesInGroup("ScrapDeposits"))
+		{
+			if (node is ScrapDeposit deposit)
+			{
+				TryUseCandidate(deposit, worldPosition, depositSelectionRadius, ref closestNode, ref closestDistanceSquared);
 			}
 		}
 

@@ -15,6 +15,11 @@ public sealed class RunStats
 	public int BuildingsDestroyed { get; private set; }
 	public int ScrapSpentOnRepairs { get; private set; }
 	public int HealthRepaired { get; private set; }
+	public int BuildingsSold { get; private set; }
+	public int ScrapRefunded { get; private set; }
+	public int EnergyRefunded { get; private set; }
+	public int AmmoRefunded { get; private set; }
+	public int DepositsDepleted { get; private set; }
 	public IReadOnlyList<string> ChosenUpgradeNames => chosenUpgradeNames;
 
 	public void Reset()
@@ -31,6 +36,11 @@ public sealed class RunStats
 		BuildingsDestroyed = 0;
 		ScrapSpentOnRepairs = 0;
 		HealthRepaired = 0;
+		BuildingsSold = 0;
+		ScrapRefunded = 0;
+		EnergyRefunded = 0;
+		AmmoRefunded = 0;
+		DepositsDepleted = 0;
 	}
 
 	public void RecordEnemyKilled()
@@ -88,8 +98,26 @@ public sealed class RunStats
 		HealthRepaired += healthRepaired;
 	}
 
+	public void RecordBuildingSold(Dictionary<ResourceType, int> refund)
+	{
+		BuildingsSold++;
+		if (refund == null)
+		{
+			return;
+		}
+
+		ScrapRefunded += refund.TryGetValue(ResourceType.Scrap, out int scrap) ? scrap : 0;
+		EnergyRefunded += refund.TryGetValue(ResourceType.Energy, out int energy) ? energy : 0;
+		AmmoRefunded += refund.TryGetValue(ResourceType.Ammo, out int ammo) ? ammo : 0;
+	}
+
+	public void RecordDepositDepleted()
+	{
+		DepositsDepleted++;
+	}
+
 	public string ToDebugString()
 	{
-		return $"Stats: Kills {EnemiesKilled} | Buildings {BuildingsPlaced} | Lost {BuildingsDestroyed} | Manual Scrap {ScrapGatheredManually} | Drill Scrap {ScrapProducedByDrills} | Energy {EnergyProduced} | Ammo {AmmoProduced} | Repairs {HealthRepaired} HP/{ScrapSpentOnRepairs} Scrap | Upgrades {UpgradesChosen} | Nights {NightsSurvived}";
+		return $"Stats: Kills {EnemiesKilled} | Buildings {BuildingsPlaced} | Sold {BuildingsSold} | Lost {BuildingsDestroyed} | Manual Scrap {ScrapGatheredManually} | Drill Scrap {ScrapProducedByDrills} | Depleted {DepositsDepleted} | Energy {EnergyProduced} | Ammo {AmmoProduced} | Repairs {HealthRepaired} HP/{ScrapSpentOnRepairs} Scrap | Upgrades {UpgradesChosen} | Nights {NightsSurvived}";
 	}
 }

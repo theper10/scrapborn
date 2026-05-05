@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://Scenes/World/Core.tscn" id="1_core"]
 [ext_resource type="PackedScene" path="res://Scenes/Resources/ScrapDeposit.tscn" id="2_scrap_deposit"]
 [ext_resource type="Script" path="res://Scripts/Enemies/EnemySpawner.cs" id="3_spawner"]
+[ext_resource type="Script" path="res://Scripts/World/ScrapDepositSpawner.cs" id="4_deposit_spawner"]
 
 [node name="TestWorld" type="Node2D"]
 
@@ -93,3 +94,42 @@ position = Vector2(430, 120)
 
 [node name="ScrapDepositSouth" parent="." instance=ExtResource("2_scrap_deposit")]
 position = Vector2(60, 360)
+
+[node name="ScrapDepositSpawner" type="Node2D" parent="."]
+script = ExtResource("4_deposit_spawner")
+
+[node name="SpawnNorthWest" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(-280, -180)
+
+[node name="SpawnNorthEast" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(300, -210)
+
+[node name="SpawnWest" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(-440, 130)
+
+[node name="SpawnEast" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(430, 120)
+
+[node name="SpawnSouth" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(60, 360)
+
+[node name="SpawnFarNorthWest" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(-620, -420)
+
+[node name="SpawnFarNorth" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(0, -460)
+
+[node name="SpawnFarNorthEast" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(620, -360)
+
+[node name="SpawnFarSouthWest" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(-700, 320)
+
+[node name="SpawnFarSouthEast" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(700, 360)
+
+[node name="SpawnLowerWest" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(-160, 500)
+
+[node name="SpawnLowerEast" type="Marker2D" parent="ScrapDepositSpawner"]
+position = Vector2(420, 460)

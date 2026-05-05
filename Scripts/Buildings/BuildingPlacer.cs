@@ -18,6 +18,7 @@ public partial class BuildingPlacer : Node2D
 	private const string SelectBuilding5Action = "SelectBuilding5";
 	private const string PlaceBuildingAction = "PlaceBuilding";
 	private const string CancelBuildModeAction = "CancelBuildMode";
+	private const string SellBuildingAction = "SellBuilding";
 
 	private readonly Dictionary<Vector2I, Building> placedBuildings = new();
 	private readonly Dictionary<Vector2I, string> blockedCellReasons = new();
@@ -25,6 +26,8 @@ public partial class BuildingPlacer : Node2D
 
 	private ResourceManager resourceManager;
 	private UpgradeManager upgradeManager;
+	private RunManager runManager;
+	private SelectionController selectionController;
 	private Node2D buildingsRoot;
 	private Polygon2D preview;
 	private BuildingType selectedBuildingType = BuildingType.Drill;
@@ -54,11 +57,13 @@ public partial class BuildingPlacer : Node2D
 		}
 
 		upgradeManager = GetNodeOrNull<UpgradeManager>("/root/UpgradeManager");
+		runManager = GetNodeOrNull<RunManager>("/root/RunManager");
 		if (upgradeManager != null)
 		{
 			upgradeManager.UpgradeApplied += OnUpgradeApplied;
 		}
 
+		selectionController = GetNodeOrNull<SelectionController>("../SelectionController");
 		buildingsRoot = GetNodeOrNull<Node2D>("../TestWorld/Buildings");
 		CacheBuildingScenes();
 		CacheBlockedCells();
@@ -123,6 +128,11 @@ public partial class BuildingPlacer : Node2D
 		{
 			TryPlaceSelectedBuilding();
 		}
+
+		if (!isBuildModeActive && Input.IsActionJustPressed(SellBuildingAction))
+		{
+			TrySellSelectedBuilding();
+		}
 	}
 
 	private void SelectBuilding(BuildingType buildingType)
@@ -156,13 +166,73 @@ public partial class BuildingPlacer : Node2D
 		}
 
 		Building building = scene.Instantiate<Building>();
-		building.InitializePlacement(targetCell);
+		building.InitializePlacement(targetCell, cost);
 		building.Destroyed += OnBuildingDestroyed;
 		building.GlobalPosition = CellToWorldPosition(targetCell);
 		buildingsRoot.AddChild(building);
 		placedBuildings[targetCell] = building;
-		GetNodeOrNull<RunManager>("/root/RunManager")?.RecordBuildingPlaced();
+		runManager?.RecordBuildingPlaced();
 		SetStatus($"{definition.DisplayName} placed");
+	}
+
+	private void TrySellSelectedBuilding()
+	{
+		if (GetTree().Paused ||
+		    runManager?.CurrentPhase is not (RunPhase.Day or RunPhase.Night) ||
+		    selectionController?.SelectedNode is not Building building ||
+		    !IsInstanceValid(building) ||
+		    building.IsDestroyed)
+		{
+			return;
+		}
+
+		SellBuilding(building);
+	}
+
+	private void SellBuilding(Building building)
+	{
+		Dictionary<ResourceType, int> refund = building.GetRefundCost();
+		Dictionary<ResourceType, int> actualRefund = AddRefund(refund, out bool lostRefund);
+		string buildingName = building.DisplayName;
+		Vector2 feedbackPosition = building.GlobalPosition;
+
+		building.Destroyed -= OnBuildingDestroyed;
+		if (placedBuildings.TryGetValue(building.GridCell, out Building placedBuilding) && placedBuilding == building)
+		{
+			placedBuildings.Remove(building.GridCell);
+		}
+
+		selectionController?.ClearSelection();
+		building.Sell();
+		runManager?.RecordBuildingSold(actualRefund);
+
+		string refundText = actualRefund.Count > 0
+			? $"+{BuildingDefinitions.FormatCost(actualRefund)}"
+			: "refund storage full";
+		FeedbackEffects.SpawnText(
+			this,
+			feedbackPosition,
+			$"Sold {buildingName}: {refundText}",
+			FeedbackEffects.ScrapGainColor,
+			FeedbackCategory.Status,
+			0.1f,
+			$"{GetInstanceId()}:sold");
+
+		if (lostRefund)
+		{
+			FeedbackEffects.SpawnText(
+				this,
+				feedbackPosition,
+				"Refund partly lost: storage full",
+				FeedbackEffects.WarningColor,
+				FeedbackCategory.Error,
+				0.1f,
+				$"{GetInstanceId()}:refund-lost",
+				new Vector2(0f, -18f));
+		}
+
+		SetStatus(lostRefund ? "Refund partly lost: storage full" : $"{buildingName} sold");
+		UpdatePreview();
 	}
 
 	private bool CanPlaceAt(Vector2I cell, out string placementError)
@@ -182,6 +252,12 @@ public partial class BuildingPlacer : Node2D
 		if (blockedCellReasons.TryGetValue(cell, out string blockedReason))
 		{
 			placementError = blockedReason;
+			return false;
+		}
+
+		if (TryGetBlockingDeposit(cell, out string depositBlockReason))
+		{
+			placementError = depositBlockReason;
 			return false;
 		}
 
@@ -350,10 +426,6 @@ public partial class BuildingPlacer : Node2D
 			{
 				blockedCellReasons[WorldPositionToCell(core.GlobalPosition)] = "Blocked by Core";
 			}
-			else if (child is ScrapDeposit deposit)
-			{
-				blockedCellReasons[WorldPositionToCell(deposit.GlobalPosition)] = "Blocked by ScrapDeposit";
-			}
 		}
 	}
 
@@ -401,7 +473,7 @@ public partial class BuildingPlacer : Node2D
 	{
 		if (selectedBuildingType == BuildingType.Drill && !IsCellNearScrapDeposit(targetCell))
 		{
-			return "Drill should be near ScrapDeposit";
+			return "Needs nearby Scrap Deposit";
 		}
 
 		return string.Empty;
@@ -409,18 +481,13 @@ public partial class BuildingPlacer : Node2D
 
 	private bool IsCellNearScrapDeposit(Vector2I cell)
 	{
-		Node testWorld = GetNodeOrNull("../TestWorld");
-		if (testWorld == null)
-		{
-			return false;
-		}
-
 		const float depositWorkRange = 96f;
 		float rangeSquared = depositWorkRange * depositWorkRange;
 		Vector2 worldPosition = CellToWorldPosition(cell);
-		foreach (Node child in testWorld.GetChildren())
+		foreach (Node node in GetTree().GetNodesInGroup("ScrapDeposits"))
 		{
-			if (child is ScrapDeposit deposit &&
+			if (node is ScrapDeposit deposit &&
+			    IsInstanceValid(deposit) &&
 			    !deposit.IsEmpty &&
 			    worldPosition.DistanceSquaredTo(deposit.GlobalPosition) <= rangeSquared)
 			{
@@ -446,6 +513,54 @@ public partial class BuildingPlacer : Node2D
 	{
 		Dictionary<ResourceType, int> baseCost = BuildingDefinitions.Get(buildingType).Cost;
 		return upgradeManager?.GetDiscountedCost(baseCost) ?? new Dictionary<ResourceType, int>(baseCost);
+	}
+
+	private Dictionary<ResourceType, int> AddRefund(Dictionary<ResourceType, int> refund, out bool lostRefund)
+	{
+		Dictionary<ResourceType, int> actualRefund = new();
+		lostRefund = false;
+		if (resourceManager == null || refund == null)
+		{
+			return actualRefund;
+		}
+
+		foreach (KeyValuePair<ResourceType, int> entry in refund)
+		{
+			int added = resourceManager.AddResource(entry.Key, entry.Value);
+			if (added > 0)
+			{
+				actualRefund[entry.Key] = added;
+			}
+
+			if (added < entry.Value)
+			{
+				lostRefund = true;
+			}
+		}
+
+		return actualRefund;
+	}
+
+	private bool TryGetBlockingDeposit(Vector2I cell, out string blockReason)
+	{
+		foreach (Node node in GetTree().GetNodesInGroup("ScrapDeposits"))
+		{
+			if (node is not ScrapDeposit deposit ||
+			    !IsInstanceValid(deposit) ||
+			    deposit.IsEmpty)
+			{
+				continue;
+			}
+
+			if (WorldPositionToCell(deposit.GlobalPosition) == cell)
+			{
+				blockReason = "Blocked by ScrapDeposit";
+				return true;
+			}
+		}
+
+		blockReason = string.Empty;
+		return false;
 	}
 
 	private Vector2I GetMouseCell()
@@ -475,6 +590,7 @@ public partial class BuildingPlacer : Node2D
 		EnsureActionHasKey(SelectBuilding5Action, Key.Key5);
 		EnsureActionHasMouseButton(PlaceBuildingAction, MouseButton.Left);
 		EnsureActionHasMouseButton(CancelBuildModeAction, MouseButton.Right);
+		EnsureActionHasKey(SellBuildingAction, Key.X);
 	}
 
 	private static void EnsureActionHasKey(string action, Key key)

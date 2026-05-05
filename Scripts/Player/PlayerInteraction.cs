@@ -335,11 +335,11 @@ public partial class PlayerInteraction : Area2D
 
 		if (resourceManager != null && resourceManager.IsFull(ResourceType.Scrap))
 		{
-			SetHint("Scrap storage full", true);
+			SetHint($"Scrap storage full\nScrap Deposit: {closestDeposit.CurrentAmount} / {closestDeposit.StartingAmount}", true);
 			return;
 		}
 
-		SetHint("Press E to gather Scrap", true);
+		SetHint($"Press E to gather Scrap\nScrap Deposit: {closestDeposit.CurrentAmount} / {closestDeposit.StartingAmount}", true);
 	}
 
 	private int GetEffectiveGatherAmount()

@@ -79,7 +79,7 @@ theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
 [node name="ControlsLabel" type="Label" parent="Root/Panel/Margin/VBox/ControlsPanel/Margin"]
-text = "Move: WASD / Arrow Keys\nGather: E\nRepair: F\nBuild Mode: B\nSelect Building: 1-5\nPlace Building: Left Click\nCancel Build Mode: Right Click\nInspect: Left Click outside Build Mode\nPause: Esc"
+text = "Move: WASD / Arrow Keys\nGather: E\nRepair: F\nBuild Mode: B\nSelect Building: 1-5\nPlace Building: Left Click\nCancel Build Mode: Right Click\nInspect: Left Click outside Build Mode\nSell Selected Building: X\nPause: Esc"
 autowrap_mode = 3
 
 [node name="QuitButton" type="Button" parent="Root/Panel/Margin/VBox"]

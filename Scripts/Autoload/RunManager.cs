@@ -415,6 +415,16 @@ public partial class RunManager : Node
 		stats.RecordRepair(scrapSpent, healthRepaired);
 	}
 
+	public void RecordBuildingSold(Dictionary<ResourceType, int> refund)
+	{
+		stats.RecordBuildingSold(refund);
+	}
+
+	public void RecordDepositDepleted()
+	{
+		stats.RecordDepositDepleted();
+	}
+
 	private bool IsRunOverInternal()
 	{
 		return currentPhase is RunPhase.Victory or RunPhase.Defeat;

@@ -63,9 +63,12 @@ public partial class RunSummaryPanelController : CanvasLayer
 			$"Nights survived: {stats.NightsSurvived}\n" +
 			$"Enemies killed: {stats.EnemiesKilled}\n" +
 			$"Buildings placed: {stats.BuildingsPlaced}\n" +
+			$"Buildings sold: {stats.BuildingsSold}\n" +
 			$"Buildings destroyed: {stats.BuildingsDestroyed}\n" +
-			$"Scrap gathered manually: {stats.ScrapGatheredManually}\n" +
-			$"Scrap produced by Drills: {stats.ScrapProducedByDrills}\n" +
+			$"Deposits depleted: {stats.DepositsDepleted}\n" +
+			$"Scrap mined manually: {stats.ScrapGatheredManually}\n" +
+			$"Scrap mined by Drills: {stats.ScrapProducedByDrills}\n" +
+			$"Refunded: {stats.ScrapRefunded} Scrap, {stats.EnergyRefunded} Energy, {stats.AmmoRefunded} Ammo\n" +
 			$"Energy produced: {stats.EnergyProduced}\n" +
 			$"Ammo produced: {stats.AmmoProduced}\n" +
 			$"Scrap spent on repairs: {stats.ScrapSpentOnRepairs}\n" +
